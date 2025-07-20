@@ -1,9 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { Paciente } from '../../pacientes/entities/paciente.entity';
+import { Paciente } from '../../pacientes/entities/paciente.entity'; // Importamos la clase Paciente para la relacion
 
-@Entity() // Esta clase representa una tabla en la base de datos
+@Entity() // TypeORM: Esta clase representa una tabla en la base de datos
 export class Turno {
-    @PrimaryGeneratedColumn() // Columna autoincremental (Clave primaria)
+    @PrimaryGeneratedColumn() // Columna -id- autoincremental (Clave primaria)
     id: number;
     
     @Column() // Fecha del turno (solo fecha, sin hora)
