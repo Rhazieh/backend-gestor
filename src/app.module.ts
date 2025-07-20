@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { PacientesModule } from './pacientes/pacientes.module';
 import { Paciente } from './pacientes/entities/paciente.entity';
+import { TurnosModule } from './turnos/turnos.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { Paciente } from './pacientes/entities/paciente.entity';
       synchronize: true,
     }),
     PacientesModule,
+    TurnosModule,
   ],
   controllers: [],
   providers: [],
