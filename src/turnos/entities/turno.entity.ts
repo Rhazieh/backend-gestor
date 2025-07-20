@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 import { Paciente } from '../../pacientes/entities/paciente.entity';
 
-@Entity // Esta clase representa una tabla en la base de datos
+@Entity() // Esta clase representa una tabla en la base de datos
 export class Turno {
     @PrimaryGeneratedColumn() // Columna autoincremental (Clave primaria)
     id: number;
