@@ -11,39 +11,44 @@ import { UpdateTurnoDto } from './dto/update-turno.dto';
 @Injectable()
 export class TurnosService {
   constructor(
+    // Inyectamos el repositorio de Turno para poder hacer consultas, guardar, actualizar, eliminar, etc.
     @InjectRepository(Turno)
     private turnoRepository: Repository<Turno>,
 
+    // También necesitamos acceder al repositorio de Paciente para vincular cada turno a un paciente existente
     @InjectRepository(Paciente)
-    private pacienteRepository: Repository<Paciente>, // Inyectamos el repositorio de Paciente
+    private pacienteRepository: Repository<Paciente>,
   ) {}
 
-  // Crear nuevo turno
+  // Método para crear un nuevo turno
   async create(createTurnoDto: CreateTurnoDto) {
-    // Buscamos al paciente por ID
+    // Buscamos si existe el paciente con el ID que nos pasaron
     const paciente = await this.pacienteRepository.findOneBy({ id: createTurnoDto.pacienteId });
 
+    // Si no se encuentra el paciente, tiramos error
     if (!paciente) {
       throw new Error('Paciente no encontrado');
     }
 
-    // Creamos el turno y le asignamos el paciente completo
+    // Creamos el turno y lo relacionamos con ese paciente que recuperamos
     const nuevoTurno = this.turnoRepository.create({
       ...createTurnoDto,
       paciente: paciente,
     });
 
+    // Guardamos el nuevo turno en la base de datos
     return this.turnoRepository.save(nuevoTurno);
   }
 
-  // Obtener todos los turnos, incluyendo datos del paciente
+  // Este método devuelve todos los turnos que hay en la base
+  // También incluye los datos del paciente relacionado (gracias al "relations")
   findAll() {
     return this.turnoRepository.find({
       relations: ['paciente'],
     });
   }
 
-  // Obtener un turno por ID, incluyendo el paciente
+  // Busca un turno por ID y también trae los datos del paciente
   findOne(id: number) {
     return this.turnoRepository.findOne({
       where: { id },
@@ -51,12 +56,12 @@ export class TurnosService {
     });
   }
 
-  // Actualizar un turno por ID
+  // Actualiza un turno específico con los nuevos datos que se le pasen
   update(id: number, updateTurnoDto: UpdateTurnoDto) {
     return this.turnoRepository.update(id, updateTurnoDto);
   }
 
-  // Eliminar un turno por ID
+  // Borra un turno por su ID
   remove(id: number) {
     return this.turnoRepository.delete(id);
   }
