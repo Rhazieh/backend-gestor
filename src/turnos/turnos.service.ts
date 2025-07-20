@@ -1,26 +1,40 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Turno } from './entities/turno.entity';
 import { CreateTurnoDto } from './dto/create-turno.dto';
 import { UpdateTurnoDto } from './dto/update-turno.dto';
 
 @Injectable()
 export class TurnosService {
+  constructor(
+    @InjectRepository(Turno)
+    private turnoRepository: Repository<Turno>,
+  ) {}
+
   create(createTurnoDto: CreateTurnoDto) {
-    return 'This action adds a new turno';
+    const nuevo = this.turnoRepository.create(createTurnoDto);
+    return this.turnoRepository.save(nuevo);
   }
 
   findAll() {
-    return `This action returns all turnos`;
+    return this.turnoRepository.find({
+      relations: ['paciente'],
+    });
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} turno`;
+    return this.turnoRepository.findOne({
+      where: { id },
+      relations: ['paciente'],
+    });
   }
 
   update(id: number, updateTurnoDto: UpdateTurnoDto) {
-    return `This action updates a #${id} turno`;
+    return this.turnoRepository.update(id, updateTurnoDto);
   }
 
   remove(id: number) {
-    return `This action removes a #${id} turno`;
+    return this.turnoRepository.delete(id);
   }
 }
