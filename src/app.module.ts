@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PacientesModule } from './pacientes/pacientes.module';
 import { Paciente } from './pacientes/entities/paciente.entity';
 import { TurnosModule } from './turnos/turnos.module';
+import { Turno } from './turnos/entities/turno.entity';
 
 @Module({
   imports: [
