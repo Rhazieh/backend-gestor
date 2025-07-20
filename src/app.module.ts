@@ -18,7 +18,7 @@ import { TurnosModule } from './turnos/turnos.module';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [Paciente],
+      entities: [Paciente, Turno],
       synchronize: true,
     }),
     PacientesModule,

@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { Turno } '../../turnos/entities/turno.entity'; // Este archivo lo vamos a crear despues
+import { Turno } from '../../turnos/entities/turno.entity'; // Este archivo lo vamos a crear despues
 
 @Entity() // Le dice a TypeORM: esta clase representa una tabla de la db".
 export class Paciente { // por default la tabla se va a llamar como la clase pero en minusculas.
