@@ -1,21 +1,22 @@
 import { IsNotEmpty, IsString, IsDateString, IsInt } from 'class-validator';
 
-// Este DTO (Data Transfer Object) define los datos que necesitamos cuando alguien quiere cargar un nuevo turno.
-// Sirve para validar que lo que nos mandan desde el frontend o Postman esté bien y no falte nada.
+// Este DTO (Data Transfer Object) sirve para validar los datos cuando se quiere crear un nuevo turno.
+// Se asegura que no falte ningún campo y que tengan el formato correcto.
+
 export class CreateTurnoDto {
-    @IsNotEmpty() // Valida que venga algo y no esté vacío
-    @IsDateString() // Se asegura que tenga formato de fecha (ej: 2025-08-15)
-    fecha: string;
+  @IsNotEmpty()        // No puede venir vacío
+  @IsDateString()      // Tiene que tener formato de fecha (yyyy-mm-dd)
+  fecha: string;
 
-    @IsNotEmpty()
-    @IsDateString() // Aunque sea una hora, lo validamos como fecha por compatibilidad con TypeORM
-    hora: string;
+  @IsNotEmpty()
+  @IsDateString()      // También usamos formato de fecha aunque sea una hora, para que sea compatible con TypeORM
+  hora: string;
 
-    @IsNotEmpty()
-    @IsString() // Tiene que ser texto, por ejemplo “Consulta general”
-    razon: string;
+  @IsNotEmpty()
+  @IsString()          // Debe ser un texto (por ejemplo: "Consulta general")
+  razon: string;
 
-    @IsNotEmpty()
-    @IsInt() // Tiene que ser un número entero, porque este es el ID del paciente al que se le asigna el turno
-    pacienteId: number; // Este valor se usa para vincular el turno con un paciente que ya esté creado
+  @IsNotEmpty()
+  @IsInt()             // Tiene que ser un número entero (el ID del paciente al que se le asigna el turno)
+  pacienteId: number;  // Esto se usa para relacionar el turno con un paciente ya existente
 }
