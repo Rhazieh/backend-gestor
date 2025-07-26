@@ -1,49 +1,48 @@
-// Este archivo define el "controlador" de pacientes, es decir,
-// las rutas que se encargan de recibir las peticiones HTTP relacionadas con pacientes
-// (como crear uno nuevo, verlos, actualizarlos o eliminarlos).
+// Este archivo define el controlador de pacientes.
+// Acá van todas las rutas que el frontend puede usar para trabajar con pacientes.
+// Por ejemplo: ver todos, crear uno nuevo, modificar uno existente o eliminarlo.
 
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { PacientesService } from './pacientes.service';
 import { CreatePacienteDto } from './dto/create-paciente.dto';
 import { UpdatePacienteDto } from './dto/update-paciente.dto';
 
-@Controller('pacientes') // Todas las rutas que se definan acá van a comenzar con /pacientes
+// Todas las rutas que estén acá van a empezar con /pacientes
+@Controller('pacientes')
 export class PacientesController {
   constructor(private readonly pacientesService: PacientesService) {}
 
   // POST /pacientes
-  // Esta ruta sirve para crear un nuevo paciente.
-  // Los datos llegan en el cuerpo del request (body), y se espera que sigan el formato del DTO correspondiente.
+  // Crea un nuevo paciente. Los datos vienen en el body del request (JSON).
   @Post()
   create(@Body() createPacienteDto: CreatePacienteDto) {
     return this.pacientesService.create(createPacienteDto);
   }
 
   // GET /pacientes
-  // Esta ruta trae a todos los pacientes guardados en la base de datos.
+  // Devuelve todos los pacientes guardados en la base.
   @Get()
   findAll() {
     return this.pacientesService.findAll();
   }
 
   // GET /pacientes/:id
-  // Esta ruta sirve para obtener un solo paciente, buscando por su ID.
+  // Busca un paciente por su ID (lo recibe como parámetro desde la URL).
   @Get(':id')
   findOne(@Param('id') id: string) {
-    // El id viene como string desde la URL, así que lo transformamos a número con +id
+    // Lo convertimos a número porque los parámetros vienen como string
     return this.pacientesService.findOne(+id);
   }
 
   // PATCH /pacientes/:id
-  // Esta ruta sirve para modificar un paciente existente, también buscando por su ID.
-  // Se actualizan solo los campos que vengan en el body (no hace falta enviar todos).
+  // Actualiza un paciente según su ID. Solo cambia los campos que se envíen en el body.
   @Patch(':id')
   update(@Param('id') id: string, @Body() updatePacienteDto: UpdatePacienteDto) {
     return this.pacientesService.update(+id, updatePacienteDto);
   }
 
   // DELETE /pacientes/:id
-  // Esta ruta elimina un paciente según su ID.
+  // Elimina un paciente por su ID.
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.pacientesService.remove(+id);
