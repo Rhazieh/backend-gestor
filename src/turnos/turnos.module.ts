@@ -1,24 +1,20 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { TurnosService } from './turnos.service';
-import { TurnosController } from './turnos.controller';
-import { Turno } from './entities/turno.entity';
-import { Paciente } from 'src/pacientes/entities/paciente.entity';
-
-// Este módulo junta todo lo que tiene que ver con "Turnos": el controlador, el servicio
-// y las entidades necesarias (Turno y Paciente). 
-// Gracias a esto, Nest sabe cómo inyectar y trabajar con estos elementos.
+import { TurnosService } from './turnos.service'; // Acá va toda la lógica para manejar los turnos
+import { TurnosController } from './turnos.controller'; // Encargado de las rutas HTTP
+import { Turno } from './entities/turno.entity'; // Entidad que representa la tabla "turno" en la base
+import { Paciente } from 'src/pacientes/entities/paciente.entity'; // También importamos Paciente por la relación con Turno
 
 @Module({
-  // Acá le decimos a TypeORM que vamos a trabajar con estas entidades en este módulo.
-  // Es necesario importar tanto Turno como Paciente porque Turno está relacionado con Paciente.
+  // TypeORM necesita saber qué entidades se usan en este módulo.
+  // Turno y Paciente están relacionadas, así que importamos las dos.
   imports: [TypeOrmModule.forFeature([Turno, Paciente])],
-  
-  // El controlador maneja las rutas HTTP
+
+  // Controlador: define las rutas para manejar los turnos (GET, POST, etc)
   controllers: [TurnosController],
 
-  // El servicio se encarga de la lógica del negocio (crear, buscar, actualizar, eliminar turnos)
+  // Servicio: tiene toda la lógica que usan las rutas, como crear turnos, buscarlos, etc.
   providers: [TurnosService],
 })
 export class TurnosModule {}
