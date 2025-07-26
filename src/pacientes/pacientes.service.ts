@@ -1,5 +1,6 @@
-// Este servicio contiene toda la lógica que maneja la entidad Paciente.
-// Acá usamos el repositorio de TypeORM para interactuar con la base de datos.
+// Acá va toda la lógica que se encarga de manejar los pacientes.
+// Es decir: crear, buscar, actualizar y eliminar pacientes.
+// Para eso usamos un "repositorio" que se conecta a la base con TypeORM.
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,46 +12,45 @@ import { UpdatePacienteDto } from './dto/update-paciente.dto';
 
 @Injectable()
 export class PacientesService {
-  // Inyectamos el repositorio de la entidad Paciente.
-  // Esto nos permite usar métodos como .save(), .find(), .delete(), etc.
+  // Acá se inyecta el repositorio de la entidad Paciente.
+  // Eso nos da acceso a métodos como .find(), .create(), .update(), .delete(), etc.
   constructor(
     @InjectRepository(Paciente)
-    private pacienteRepository: Repository<Paciente>,
+    private pacienteRepo: Repository<Paciente>, // Le cambié el nombre a "pacienteRepo" para que no se confunda con los métodos
   ) {}
 
-  // Crea un nuevo paciente en la base de datos.
-  // Primero usa .create() para generar el objeto y luego .save() para guardarlo realmente.
-  create(createPacienteDto: CreatePacienteDto) {
-    const nuevo = this.pacienteRepository.create(createPacienteDto);
-    return this.pacienteRepository.save(nuevo);
+  // Crea un nuevo paciente en la base.
+  // Primero arma el objeto (sin guardarlo aún), y después lo guarda con save().
+  create(datosPaciente: CreatePacienteDto) {
+    const pacienteNuevo = this.pacienteRepo.create(datosPaciente);
+    return this.pacienteRepo.save(pacienteNuevo);
   }
 
-  // Trae todos los pacientes registrados.
-  // Además, con la opción "relations" también trae los turnos vinculados a cada paciente (si los tiene).
+  // Devuelve todos los pacientes registrados en la base.
+  // Además, trae también los turnos de cada paciente si tienen (por eso usamos "relations").
   findAll() {
-    return this.pacienteRepository.find({
-      relations: ['turnos'], // Esto hace que venga cada paciente con su lista de turnos
+    return this.pacienteRepo.find({
+      relations: ['turnos'],
     });
   }
 
-  // Busca un paciente específico por su ID.
-  // También trae los turnos que tenga ese paciente (por eso usamos relations).
+  // Busca un solo paciente por su ID.
+  // También incluye los turnos que tenga ese paciente.
   findOne(id: number) {
-    return this.pacienteRepository.findOne({
+    return this.pacienteRepo.findOne({
       where: { id },
       relations: ['turnos'],
     });
   }
 
-  // Actualiza los datos de un paciente, usando su ID.
-  // Los cambios vienen en el DTO de actualización.
-  update(id: number, updatePacienteDto: UpdatePacienteDto) {
-    return this.pacienteRepository.update(id, updatePacienteDto);
+  // Actualiza un paciente según el ID y los nuevos datos recibidos.
+  update(id: number, datosActualizados: UpdatePacienteDto) {
+    return this.pacienteRepo.update(id, datosActualizados);
   }
 
-  // Elimina un paciente de la base de datos según su ID.
-  // Si ese paciente tiene turnos, se eliminan en cascada (lo definimos en la entidad).
+  // Elimina un paciente por ID.
+  // Si ese paciente tiene turnos, también se borran automáticamente (por la cascada definida en la entidad).
   remove(id: number) {
-    return this.pacienteRepository.delete(id);
+    return this.pacienteRepo.delete(id);
   }
 }
