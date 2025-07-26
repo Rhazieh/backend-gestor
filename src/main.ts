@@ -1,13 +1,15 @@
-import { NestFactory } from '@nestjs/core'; // Esto permite crear una instancia de tu app Nest
-import { AppModule } from './app.module';    // Importamos el módulo principal que ya configuramos (con DB, módulos, etc.)
+import { NestFactory } from '@nestjs/core'; // Importamos lo necesario para crear la app NestJS
+import { AppModule } from './app.module';    // Importamos el módulo principal donde está todo configurado (DB, módulos, etc.)
 
-// Esta función se ejecuta apenas arranca la app
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule); // Creamos la app a partir del módulo principal
+// Esta función arranca automáticamente cuando inicia el backend
+async function iniciarApp() {
+  // Creamos la app usando el módulo principal (AppModule)
+  const app = await NestFactory.create(AppModule);
 
-  // Le decimos en qué puerto va a escuchar (si hay variable de entorno PORT la usa, sino por defecto 3000)
+  // Le indicamos en qué puerto tiene que correr el backend:
+  // Si existe la variable de entorno PORT, la usa. Si no, usa el 3000 por defecto.
   await app.listen(process.env.PORT ?? 3000);
 }
 
 // Ejecutamos la función para que arranque el servidor
-bootstrap();
+iniciarApp();
