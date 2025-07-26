@@ -3,43 +3,42 @@ import { TurnosService } from './turnos.service';
 import { CreateTurnoDto } from './dto/create-turno.dto';
 import { UpdateTurnoDto } from './dto/update-turno.dto';
 
-// Este controlador se encarga de manejar todas las rutas relacionadas a los turnos.
-// Lo que hace es recibir las peticiones (por ejemplo, cuando alguien manda un POST o un GET),
-// y se las pasa al servicio (TurnosService), que es donde realmente se hace la lógica.
+// Este controlador se encarga de manejar todas las rutas HTTP que tienen que ver con turnos.
+// Solamente recibe las peticiones (como GET, POST, etc) y se las pasa al servicio que hace la lógica real.
 @Controller('turnos')
 export class TurnosController {
   constructor(private readonly turnosService: TurnosService) {}
 
-  // Cuando se hace un POST a /turnos, este método se activa.
-  // Recibe los datos del turno por el body y se los pasa al servicio para crear el turno.
+  // POST /turnos
+  // Crea un turno nuevo. El cuerpo del request tiene que venir con los datos correctos (validados por el DTO).
   @Post()
   create(@Body() createTurnoDto: CreateTurnoDto) {
     return this.turnosService.create(createTurnoDto);
   }
 
-  // Este método devuelve todos los turnos registrados.
-  // Se activa al hacer un GET a /turnos.
+  // GET /turnos
+  // Devuelve todos los turnos guardados en la base de datos.
   @Get()
   findAll() {
     return this.turnosService.findAll();
   }
 
-  // Este busca un turno específico según su ID.
-  // Por ejemplo, GET /turnos/5 devuelve el turno con ID 5.
+  // GET /turnos/:id
+  // Trae un turno puntual por su ID (lo convertimos a número con +id porque viene como string).
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.turnosService.findOne(+id); // Se transforma el ID a número con +id
+    return this.turnosService.findOne(+id);
   }
 
-  // Este método se usa para actualizar los datos de un turno ya creado.
-  // Recibe el ID por parámetro y los datos nuevos por el body.
+  // PATCH /turnos/:id
+  // Actualiza un turno específico. Se puede modificar solo una parte (no hace falta mandar todo).
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTurnoDto: UpdateTurnoDto) {
     return this.turnosService.update(+id, updateTurnoDto);
   }
 
-  // Esta ruta elimina un turno según su ID.
-  // DELETE /turnos/3 eliminaría el turno con ID 3.
+  // DELETE /turnos/:id
+  // Elimina un turno por ID.
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.turnosService.remove(+id);
