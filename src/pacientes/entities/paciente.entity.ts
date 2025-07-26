@@ -1,27 +1,28 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { Turno } from '../../turnos/entities/turno.entity'; // Importamos la clase Turno para hacer la relación
+import { Turno } from '../../turnos/entities/turno.entity'; // Importamos la entidad Turno para hacer la relación 1:N
 
-// Esta clase define cómo se va a crear la tabla "paciente" en la base de datos usando TypeORM
+// Esta clase representa la tabla "paciente" en la base de datos.
+// Cada vez que creemos un nuevo Paciente desde el backend, se va a guardar en esta tabla.
 @Entity()
 export class Paciente {
-    // Esta columna va a ser la clave primaria (id) y se va a autogenerar sola, como cuando Excel numera filas automáticamente
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  // ID autoincremental (clave primaria). Se genera solo, como si fuera una fila nueva en Excel.
+  id: number;
 
-    // Esta columna guarda el nombre del paciente
-    @Column()
-    nombre: string;
+  @Column()
+  // Columna para el nombre del paciente
+  nombre: string;
 
-    // Esta guarda el email del paciente
-    @Column()
-    email: string;
+  @Column()
+  // Columna para el email
+  email: string;
 
-    // Esta guarda el número de teléfono
-    @Column()
-    telefono: string;
+  @Column()
+  // Columna para el teléfono del paciente
+  telefono: string;
 
-    // Relación con los turnos: un paciente puede tener muchos turnos
-    // Esto sirve para que podamos acceder fácilmente a los turnos de un paciente desde la base de datos
-    @OneToMany(() => Turno, (turno) => turno.paciente)
-    turnos: Turno[];
+  @OneToMany(() => Turno, (turno) => turno.paciente)
+  // Relación 1:N → Un paciente puede tener muchos turnos.
+  // Esta relación nos permite acceder a todos los turnos que tiene un paciente.
+  turnos: Turno[];
 }
