@@ -1,22 +1,7 @@
-import { IsNotEmpty, IsString, IsDateString, IsInt } from 'class-validator';
+import { PartialType } from '@nestjs/mapped-types';
+import { CreateTurnoDto } from './create-turno.dto';
 
-// Este DTO (Data Transfer Object) sirve para validar los datos cuando se quiere crear un nuevo turno.
-// Se asegura que no falte ningún campo y que tengan el formato correcto.
-
-export class CreateTurnoDto {
-  @IsNotEmpty()        // No puede venir vacío
-  @IsDateString()      // Tiene que tener formato de fecha (yyyy-mm-dd)
-  fecha: string;
-
-  @IsNotEmpty()
-  @IsDateString()      // También usamos formato de fecha aunque sea una hora, para que sea compatible con TypeORM
-  hora: string;
-
-  @IsNotEmpty()
-  @IsString()          // Debe ser un texto (por ejemplo: "Consulta general")
-  razon: string;
-
-  @IsNotEmpty()
-  @IsInt()             // Tiene que ser un número entero (el ID del paciente al que se le asigna el turno)
-  pacienteId: number;  // Esto se usa para relacionar el turno con un paciente ya existente
-}
+// Este DTO se usa para actualizar un turno.
+// Usa el DTO de creación como base, pero con PartialType convierte todos los campos en OPCIONALES.
+// Así se puede enviar solo lo que se quiera cambiar (por ejemplo, solo la hora o la razón).
+export class UpdateTurnoDto extends PartialType(CreateTurnoDto) {}
