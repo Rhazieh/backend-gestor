@@ -1,32 +1,31 @@
-
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { Paciente } from '../../pacientes/entities/paciente.entity'; // Importamos la entidad Paciente para usarla en la relación
+import { Paciente } from '../../pacientes/entities/paciente.entity'; // Importamos la entidad Paciente para hacer la relación entre ambos
 
-// Esta clase representa la tabla "turno" en la base de datos.
-// Cada instancia de esta clase es un registro (fila) en la tabla.
+// Esta clase define cómo va a ser la tabla "turno" en la base de datos.
+// Cada propiedad es una columna, y cada turno guardado es una fila (registro).
 @Entity()
 export class Turno {
-    @PrimaryGeneratedColumn() 
-    // Columna autoincremental que va a ser la clave primaria (id del turno).
-    // Se genera sola cuando creamos un nuevo turno.
-    id: number;
+  @PrimaryGeneratedColumn()
+  // Esta columna es la clave primaria (id), se genera automáticamente
+  // Es como un número único que identifica a cada turno
+  id: number;
 
-    @Column()
-    // Columna que guarda la fecha del turno (en formato Date).
-    fecha: Date;
+  @Column()
+  // Guarda la fecha del turno (solo la fecha, no la hora)
+  // Se usa el tipo Date aunque venga como string en el DTO, porque TypeORM lo guarda así en la base
+  fecha: Date;
 
-    @Column()
-    // Columna que guarda la hora del turno como string.
-    // Usamos string porque TypeORM no tiene tipo "solo hora".
-    hora: string;
+  @Column()
+  // Guarda la hora del turno como texto (string), porque TypeORM no tiene tipo "solo hora"
+  hora: string;
 
-    @Column()
-    // Columna donde escribimos el motivo del turno (texto libre).
-    razon: string;
+  @Column()
+  // Guarda el motivo o la razón del turno (por ejemplo: "control general", "dolor de cabeza", etc.)
+  razon: string;
 
-    @ManyToOne(() => Paciente, (paciente) => paciente.turnos, { onDelete: 'CASCADE' })
-    // Relación MUCHOS turnos pertenecen a UN paciente (ManyToOne).
-    // onDelete: 'CASCADE' significa que si se borra el paciente,
-    // también se borran automáticamente sus turnos.
-    paciente: Paciente;
+  @ManyToOne(() => Paciente, (paciente) => paciente.turnos, { onDelete: 'CASCADE' })
+  // Relación de muchos turnos para un mismo paciente
+  // Esto permite que cada turno esté conectado con el paciente que lo pidió
+  // El "onDelete: 'CASCADE'" significa que si se borra el paciente, se borran todos sus turnos automáticamente
+  paciente: Paciente;
 }
