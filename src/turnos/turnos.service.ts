@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Turno } from './entities/turno.entity';
-import { Paciente } from '../pacientes/entities/paciente.entity'; // Importamos la entidad Paciente
+import { Paciente } from '../pacientes/entities/paciente.entity'; // Necesitamos esto para poder asociar turnos con pacientes
 
 import { CreateTurnoDto } from './dto/create-turno.dto';
 import { UpdateTurnoDto } from './dto/update-turno.dto';
@@ -11,58 +11,57 @@ import { UpdateTurnoDto } from './dto/update-turno.dto';
 @Injectable()
 export class TurnosService {
   constructor(
-    // Inyectamos el repositorio de Turno para poder hacer consultas, guardar, actualizar, eliminar, etc.
+    // Repositorio para manejar los turnos (crear, buscar, editar, borrar, etc.)
     @InjectRepository(Turno)
-    private turnoRepository: Repository<Turno>,
+    private repoTurno: Repository<Turno>,
 
-    // También necesitamos acceder al repositorio de Paciente para vincular cada turno a un paciente existente
+    // Repositorio de pacientes, para asegurarnos que el paciente exista antes de asignarle un turno
     @InjectRepository(Paciente)
-    private pacienteRepository: Repository<Paciente>,
+    private repoPaciente: Repository<Paciente>,
   ) {}
 
-  // Método para crear un nuevo turno
-  async create(createTurnoDto: CreateTurnoDto) {
-    // Buscamos si existe el paciente con el ID que nos pasaron
-    const paciente = await this.pacienteRepository.findOneBy({ id: createTurnoDto.pacienteId });
+  // Crea un nuevo turno en la base de datos
+  async create(dto: CreateTurnoDto) {
+    // Primero buscamos el paciente con el ID que vino en el DTO
+    const pacienteEncontrado = await this.repoPaciente.findOneBy({ id: dto.pacienteId });
 
-    // Si no se encuentra el paciente, tiramos error
-    if (!paciente) {
+    // Si no lo encuentra, cortamos todo y lanzamos un error
+    if (!pacienteEncontrado) {
       throw new Error('Paciente no encontrado');
     }
 
-    // Creamos el turno y lo relacionamos con ese paciente que recuperamos
-    const nuevoTurno = this.turnoRepository.create({
-      ...createTurnoDto,
-      paciente: paciente,
+    // Creamos el objeto Turno y lo asociamos al paciente que recuperamos
+    const turnoNuevo = this.repoTurno.create({
+      ...dto, // Copiamos los campos (fecha, hora, razón)
+      paciente: pacienteEncontrado, // Relación directa con la entidad Paciente
     });
 
-    // Guardamos el nuevo turno en la base de datos
-    return this.turnoRepository.save(nuevoTurno);
+    // Guardamos ese turno en la base
+    return this.repoTurno.save(turnoNuevo);
   }
 
-  // Este método devuelve todos los turnos que hay en la base
-  // También incluye los datos del paciente relacionado (gracias al "relations")
+  // Devuelve todos los turnos registrados, con su respectivo paciente incluido
   findAll() {
-    return this.turnoRepository.find({
-      relations: ['paciente'],
+    return this.repoTurno.find({
+      relations: ['paciente'], // Trae también los datos del paciente relacionado
     });
   }
 
-  // Busca un turno por ID y también trae los datos del paciente
+  // Devuelve un turno específico por su ID, junto con el paciente al que pertenece
   findOne(id: number) {
-    return this.turnoRepository.findOne({
+    return this.repoTurno.findOne({
       where: { id },
       relations: ['paciente'],
     });
   }
 
-  // Actualiza un turno específico con los nuevos datos que se le pasen
-  update(id: number, updateTurnoDto: UpdateTurnoDto) {
-    return this.turnoRepository.update(id, updateTurnoDto);
+  // Actualiza los datos de un turno ya existente (puede cambiar fecha, hora, razón, etc.)
+  update(id: number, dto: UpdateTurnoDto) {
+    return this.repoTurno.update(id, dto);
   }
 
-  // Borra un turno por su ID
+  // Elimina un turno por su ID
   remove(id: number) {
-    return this.turnoRepository.delete(id);
+    return this.repoTurno.delete(id);
   }
 }
