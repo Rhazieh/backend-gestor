@@ -44,9 +44,14 @@ export class PacientesService {
   }
 
   // Actualiza un paciente según el ID y los nuevos datos recibidos.
-  update(id: number, datosActualizados: UpdatePacienteDto) {
-    return this.pacienteRepo.update(id, datosActualizados);
-  }
+// Evita que se intente actualizar la relación "turnos", que no se puede desde acá.
+async update(id: number, datosActualizados: UpdatePacienteDto) {
+  const soloDatos = { ...datosActualizados } as any;
+  delete soloDatos.turnos;
+
+  await this.pacienteRepo.update(id, soloDatos);
+  return this.pacienteRepo.findOne({ where: { id }, relations: ['turnos'] });
+}
 
   // Elimina un paciente por ID.
   // Si ese paciente tiene turnos, también se borran automáticamente (por la cascada definida en la entidad).

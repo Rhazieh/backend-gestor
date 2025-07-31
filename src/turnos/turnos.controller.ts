@@ -10,10 +10,11 @@ export class TurnosController {
   constructor(private readonly turnosService: TurnosService) {}
 
   // POST /turnos
-  // Crea un turno nuevo. El cuerpo del request tiene que venir con los datos correctos (validados por el DTO).
+  // Crea un nuevo turno y lo devuelve con el paciente populado.
   @Post()
-  create(@Body() createTurnoDto: CreateTurnoDto) {
-    return this.turnosService.create(createTurnoDto);
+  async create(@Body() createTurnoDto: CreateTurnoDto) {
+    const nuevo = await this.turnosService.create(createTurnoDto);
+    return this.turnosService.findOne(nuevo.id); // <-- Volvemos a buscarlo con relaciones
   }
 
   // GET /turnos
@@ -24,7 +25,7 @@ export class TurnosController {
   }
 
   // GET /turnos/:id
-  // Trae un turno puntual por su ID (lo convertimos a número con +id porque viene como string).
+  // Trae un turno puntual por su ID (convertimos a número con +id porque viene como string).
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.turnosService.findOne(+id);
