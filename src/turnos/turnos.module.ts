@@ -1,52 +1,47 @@
-// Importa el decorador @Module para definir un módulo en NestJS.
-import { Module } from '@nestjs/common';
+// Módulo de Turnos
+// Ajustado para:
+// - Exportar TurnosService (lo usa PacientesController)
+// - Importar PacientesModule con forwardRef (evita dependencia circular)
+// - Mantener repos de Turno y Paciente disponibles en este módulo
 
-// Importa TypeOrmModule para poder trabajar con la base de datos usando TypeORM.
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-// Importa el servicio de turnos, donde estará toda la lógica de negocio
-// (crear, buscar, actualizar y eliminar turnos).
 import { TurnosService } from './turnos.service';
-
-// Importa el controlador de turnos, que maneja las rutas HTTP.
 import { TurnosController } from './turnos.controller';
 
-// Importa la entidad Turno, que representa la tabla "turnos" en la base de datos.
 import { Turno } from './entities/turno.entity';
+import { Paciente } from '../pacientes/entities/paciente.entity'; // import relativo, más portable
 
-// Importa la entidad Paciente porque hay una relación entre turnos y pacientes
-// (cada turno pertenece a un paciente).
-import { Paciente } from 'src/pacientes/entities/paciente.entity';
+import { PacientesModule } from '../pacientes/pacientes.module';
 
-/**
- * Módulo de Turnos:
- * - Agrupa el controlador, el servicio y las entidades relacionadas con turnos.
- * - Permite manejar las operaciones CRUD de los turnos y su relación con pacientes.
- */
 @Module({
   /**
    * imports:
-   * - TypeOrmModule.forFeature([Turno, Paciente]):
-   *   Registra las entidades Turno y Paciente en este módulo para que TypeORM
-   *   pueda inyectar sus repositorios.
-   *   Esto es necesario porque un turno está relacionado con un paciente y,
-   *   en algunas operaciones, se necesita acceder a la información del paciente.
+   * - TypeOrmModule.forFeature([Turno, Paciente]): repos inyectables para este módulo
+   * - forwardRef(() => PacientesModule): permite que PacientesModule nos importe y viceversa
    */
-  imports: [TypeOrmModule.forFeature([Turno, Paciente])],
+  imports: [
+    TypeOrmModule.forFeature([Turno, Paciente]),
+    forwardRef(() => PacientesModule),
+  ],
 
   /**
    * controllers:
-   * - Lista de controladores que manejan las rutas de este módulo.
-   *   TurnosController define las rutas como GET, POST, PATCH, DELETE para turnos.
+   * - TurnosController: rutas de /turnos (y luego podemos sumar alias si querés)
    */
   controllers: [TurnosController],
 
   /**
    * providers:
-   * - Lista de servicios (y otras dependencias) que este módulo necesita.
-   *   TurnosService contiene la lógica para crear, buscar, actualizar y eliminar turnos.
+   * - TurnosService: lógica de negocio de turnos
    */
   providers: [TurnosService],
+
+  /**
+   * exports:
+   * - Exporto TurnosService para que PacientesController pueda inyectarlo
+   */
+  exports: [TurnosService],
 })
-// Exportamos el módulo para que pueda ser usado en AppModule.
 export class TurnosModule {}

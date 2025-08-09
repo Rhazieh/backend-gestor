@@ -1,87 +1,97 @@
-// Importa el decorador @Controller y otros decoradores para manejar rutas y parámetros HTTP.
-// Estos decoradores indican a NestJS qué hacer cuando se recibe una petición en cierta ruta y con cierto método.
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+// Controller de Pacientes
+// Ojo: expone las rutas en español Y en inglés al mismo tiempo.
+//   - Español   -> /pacientes (...)
+//   - Inglés    -> /patients (...)
+//   - Inglés anidado -> /patients/:id/appointments  (GET/POST)  -> usa TurnosService
+//
+// Lo hago así para cumplir el enunciado sin romper tu front actual que usa /pacientes.
 
-// Importa el servicio de pacientes, que contiene toda la lógica de negocio.
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  ParseIntPipe,
+} from '@nestjs/common';
+
 import { PacientesService } from './pacientes.service';
+import { TurnosService } from '../turnos/turnos.service';
 
-// Importa el DTO para crear pacientes (Data Transfer Object).
-// Define y valida qué datos se necesitan al crear un nuevo paciente.
+// Tus DTOs de pacientes (ajustá import si tu ruta difiere)
 import { CreatePacienteDto } from './dto/create-paciente.dto';
-
-// Importa el DTO para actualizar pacientes.
-// Permite recibir datos parciales para modificar solo lo necesario.
 import { UpdatePacienteDto } from './dto/update-paciente.dto';
 
-/**
- * @Controller('pacientes'):
- * Define que todas las rutas de este controlador comenzarán con "/pacientes".
- * Ejemplo: GET /pacientes, POST /pacientes, GET /pacientes/:id, etc.
- */
-@Controller('pacientes')
+// Para crear appointments desde /patients/:id/appointments NO pido pacienteId en el body.
+// Defino un DTO cortito que valida fecha/hora/razon.
+import { IsNotEmpty, IsString, Matches } from 'class-validator';
+class CreateAppointmentFromPatientDto {
+  @IsNotEmpty()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/) // 'YYYY-MM-DD'
+  fecha: string;
+
+  @IsNotEmpty()
+  @Matches(/^\d{2}:\d{2}$/) // 'HH:MM' 24h
+  hora: string;
+
+  @IsNotEmpty()
+  @IsString()
+  razon: string;
+}
+
+// 👇 Con este array, el MISMO controller responde en /pacientes y /patients
+@Controller(['pacientes', 'patients'])
 export class PacientesController {
-  /**
-   * Inyección de dependencias:
-   * - Recibimos una instancia de PacientesService automáticamente.
-   * - Esto nos permite llamar a la lógica definida en el servicio sin crearlo manualmente.
-   */
-  constructor(private readonly pacientesService: PacientesService) {}
+  constructor(
+    private readonly pacientesService: PacientesService,
+    private readonly turnosService: TurnosService, // lo uso para appointments
+  ) {}
 
-  /**
-   * @Post():
-   * Maneja las peticiones POST a "/pacientes".
-   * - @Body() extrae el cuerpo de la petición (JSON enviado por el cliente).
-   * - createPacienteDto contiene los datos validados según CreatePacienteDto.
-   * - Llama al método create() del servicio para guardar el nuevo paciente.
-   */
-  @Post()
-  create(@Body() createPacienteDto: CreatePacienteDto) {
-    return this.pacientesService.create(createPacienteDto);
-  }
-
-  /**
-   * @Get():
-   * Maneja las peticiones GET a "/pacientes".
-   * - No recibe parámetros.
-   * - Devuelve todos los pacientes almacenados en la base de datos.
-   */
+  // GET /pacientes  y  GET /patients
   @Get()
   findAll() {
     return this.pacientesService.findAll();
   }
 
-  /**
-   * @Get(':id'):
-   * Maneja las peticiones GET a "/pacientes/:id".
-   * - @Param('id') extrae el valor ":id" de la URL.
-   * - Los parámetros de la URL llegan como string, por eso convertimos con +id a número.
-   * - Devuelve un solo paciente que coincida con ese ID.
-   */
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.pacientesService.findOne(+id);
+  // POST /pacientes  y  POST /patients
+  @Post()
+  create(@Body() body: CreatePacienteDto) {
+    return this.pacientesService.create(body);
   }
 
-  /**
-   * @Patch(':id'):
-   * Maneja las peticiones PATCH a "/pacientes/:id".
-   * - @Param('id') obtiene el ID desde la URL.
-   * - @Body() obtiene los datos a modificar (pueden ser campos parciales).
-   * - Llama al método update() del servicio para actualizar los datos del paciente.
-   */
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePacienteDto: UpdatePacienteDto) {
-    return this.pacientesService.update(+id, updatePacienteDto);
+  // PUT /pacientes/:id  y  PUT /patients/:id
+  @Put(':id')
+  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdatePacienteDto) {
+    return this.pacientesService.update(id, body);
   }
 
-  /**
-   * @Delete(':id'):
-   * Maneja las peticiones DELETE a "/pacientes/:id".
-   * - Elimina el paciente con el ID indicado.
-   * - El método remove() del servicio se encarga de la operación.
-   */
+  // DELETE /pacientes/:id  y  DELETE /patients/:id
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.pacientesService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.pacientesService.remove(id);
+  }
+
+  // GET /patients/:id/appointments   (también responde en /pacientes/:id/appointments por el array)
+  @Get(':id/appointments')
+  getAppointments(@Param('id', ParseIntPipe) id: number) {
+    // Devuelvo los turnos del paciente id
+    return this.turnosService.findByPatient(id);
+  }
+
+  // POST /patients/:id/appointments  (idem español por el array)
+  @Post(':id/appointments')
+  createAppointment(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: CreateAppointmentFromPatientDto,
+  ) {
+    // Delego en TurnosService.create y le inyecto el pacienteId desde la URL
+    return this.turnosService.create({
+      fecha: body.fecha,
+      hora: body.hora,
+      razon: body.razon,
+      pacienteId: id,
+    } as any);
   }
 }

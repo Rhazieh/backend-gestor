@@ -1,7 +1,10 @@
 // Importa PartialType desde @nestjs/mapped-types.
 // PartialType toma un DTO existente y genera una nueva clase
-// en la que todos los campos son opcionales.
+// en la que todos los campos son OPCIONALES.
 import { PartialType } from '@nestjs/mapped-types';
+
+// Importa validadores extra por si queremos permitir cambiar el paciente también.
+import { IsInt, IsOptional } from 'class-validator';
 
 // Importa el DTO de creación de turnos para reutilizar sus campos y validaciones.
 import { CreateTurnoDto } from './create-turno.dto';
@@ -10,9 +13,12 @@ import { CreateTurnoDto } from './create-turno.dto';
  * DTO para actualizar un turno existente.
  * - Extiende de PartialType(CreateTurnoDto):
  *   * Copia todos los campos y validaciones de CreateTurnoDto.
- *   * Marca cada campo como opcional.
- * - Esto permite que, al actualizar un turno, se pueda enviar únicamente
- *   el dato que queremos modificar (por ejemplo, solo la hora o la razón)
- *   sin tener que enviar todos los campos obligatorios de la creación.
+ *   * Marca cada campo como OPCIONAL.
+ * - Además, permito (opcional) cambiar el paciente del turno usando pacienteId.
  */
-export class UpdateTurnoDto extends PartialType(CreateTurnoDto) {}
+export class UpdateTurnoDto extends PartialType(CreateTurnoDto) {
+  @IsOptional()
+  @IsInt()
+  // Cambiar el paciente del turno es opcional; si no viene, no se toca.
+  pacienteId?: number;
+}

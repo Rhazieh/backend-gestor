@@ -1,38 +1,33 @@
-// Importa decoradores de NestJS para definir el controlador y manejar rutas HTTP.
-// - @Controller: Define el prefijo de ruta para todas las acciones de este controlador.
-// - @Get, @Post, @Patch, @Delete: Definen métodos HTTP específicos.
-// - @Body, @Param: Extraen datos del cuerpo de la petición o de la URL.
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+// Controlador de Turnos
+// 👉 Expone rutas en español Y alias en inglés.
+//    - Español (actual):    /turnos
+//    - Inglés (alias):      /appointments
+// Sumo soporte de PUT y PATCH para cumplir el enunciado sin romper tu front.
 
-// Importa el servicio de turnos, que contiene la lógica de negocio real.
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Put,
+  Param,
+  Delete,
+  ParseIntPipe,
+} from '@nestjs/common';
+
 import { TurnosService } from './turnos.service';
-
-// Importa el DTO que define los datos necesarios para crear un turno.
 import { CreateTurnoDto } from './dto/create-turno.dto';
-
-// Importa el DTO que define los datos que se pueden actualizar en un turno.
 import { UpdateTurnoDto } from './dto/update-turno.dto';
 
-/**
- * @Controller('turnos'):
- * - Define que todas las rutas aquí empezarán con "/turnos".
- * - Ejemplo: GET /turnos, POST /turnos, GET /turnos/:id, etc.
- */
-@Controller('turnos')
+// 👇 Mismo controller con dos prefijos: /turnos y /appointments
+@Controller(['turnos', 'appointments'])
 export class TurnosController {
-  /**
-   * Inyección de dependencias:
-   * - NestJS crea automáticamente una instancia de TurnosService y la pasa aquí.
-   * - Esto nos permite acceder a la lógica de negocio sin crear manualmente el servicio.
-   */
   constructor(private readonly turnosService: TurnosService) {}
 
   /**
-   * POST /turnos
-   * - Crea un nuevo turno.
-   * - @Body() extrae los datos enviados en el cuerpo de la petición y los valida según CreateTurnoDto.
-   * - Luego de crearlo, lo buscamos de nuevo con findOne() para devolverlo con las relaciones cargadas
-   *   (por ejemplo, el paciente asociado).
+   * POST /turnos        (y también /appointments)
+   * Crea un nuevo turno. Devuelvo el turno con relaciones cargadas.
    */
   @Post()
   async create(@Body() createTurnoDto: CreateTurnoDto) {
@@ -41,9 +36,8 @@ export class TurnosController {
   }
 
   /**
-   * GET /turnos
-   * - Devuelve todos los turnos almacenados.
-   * - El servicio se encarga de traer también la información de pacientes asociados.
+   * GET /turnos         (y también /appointments)
+   * Lista todos los turnos (ordenados por fecha y hora).
    */
   @Get()
   findAll() {
@@ -51,33 +45,44 @@ export class TurnosController {
   }
 
   /**
-   * GET /turnos/:id
-   * - Busca un turno específico por su ID.
-   * - @Param('id') obtiene el valor del parámetro de la URL.
-   * - Convertimos el id a número con +id porque los parámetros llegan como strings.
+   * GET /turnos/:id     (y también /appointments/:id)
+   * Busca un turno puntual por ID.
    */
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.turnosService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.turnosService.findOne(id);
   }
 
   /**
-   * PATCH /turnos/:id
-   * - Actualiza un turno existente por su ID.
-   * - @Body() recibe datos parciales definidos en UpdateTurnoDto.
-   * - Se pueden modificar solo algunos campos sin necesidad de enviar todos.
+   * PUT /turnos/:id     (y también /appointments/:id)
+   * Actualiza el turno "reemplazando" campos (para el enunciado).
+   */
+  @Put(':id')
+  updatePut(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateTurnoDto: UpdateTurnoDto,
+  ) {
+    return this.turnosService.update(id, updateTurnoDto);
+  }
+
+  /**
+   * PATCH /turnos/:id   (y también /appointments/:id)
+   * Actualización parcial — lo mantengo para compatibilidad.
    */
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTurnoDto: UpdateTurnoDto) {
-    return this.turnosService.update(+id, updateTurnoDto);
+  updatePatch(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateTurnoDto: UpdateTurnoDto,
+  ) {
+    return this.turnosService.update(id, updateTurnoDto);
   }
 
   /**
-   * DELETE /turnos/:id
-   * - Elimina un turno por su ID.
+   * DELETE /turnos/:id  (y también /appointments/:id)
+   * Elimina un turno por ID.
    */
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.turnosService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.turnosService.remove(id);
   }
 }

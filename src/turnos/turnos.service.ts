@@ -1,129 +1,112 @@
-// Importa el decorador @Injectable para indicar que esta clase es un servicio
-// y que puede ser inyectada en controladores u otros servicios.
-import { Injectable } from '@nestjs/common';
+// Servicio de Turnos
+// Acá va toda la lógica "de negocio" de los turnos: crear, listar, editar, borrar.
+// NOTA: guardo fecha/hora como strings validadas ('YYYY-MM-DD' y 'HH:MM').
+//       No uso new Date(...) para evitar líos de zona horaria.
 
-// Importa el decorador para inyectar repositorios de TypeORM.
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-
-// Importa el tipo Repository de TypeORM, que sirve para interactuar con una tabla específica.
 import { Repository } from 'typeorm';
 
-// Importa la entidad Turno, que representa la tabla "turnos" en la base de datos.
 import { Turno } from './entities/turno.entity';
-
-// Importa la entidad Paciente, ya que cada turno pertenece a un paciente.
 import { Paciente } from '../pacientes/entities/paciente.entity';
 
-// Importa el DTO para crear turnos.
 import { CreateTurnoDto } from './dto/create-turno.dto';
-
-// Importa el DTO para actualizar turnos.
 import { UpdateTurnoDto } from './dto/update-turno.dto';
 
-/**
- * Servicio de Turnos:
- * Aquí se concentra toda la lógica de negocio para manejar turnos:
- * creación, búsqueda, actualización y eliminación.
- */
 @Injectable()
 export class TurnosService {
-  /**
-   * Constructor con inyección de dependencias:
-   * - repoTurno: repositorio para acceder a la tabla "turnos".
-   * - repoPaciente: repositorio para acceder a la tabla "pacientes".
-   *   Esto es necesario para asociar un turno con un paciente existente.
-   */
   constructor(
-    @InjectRepository(Turno)
-    private repoTurno: Repository<Turno>,
-
-    @InjectRepository(Paciente)
-    private repoPaciente: Repository<Paciente>,
+    // Repositorio de Turno (tabla de turnos)
+    @InjectRepository(Turno) private readonly turnosRepo: Repository<Turno>,
+    // Repositorio de Paciente (para validar existencia y asignar relación)
+    @InjectRepository(Paciente) private readonly pacientesRepo: Repository<Paciente>,
   ) {}
 
   /**
-   * Crea un nuevo turno en la base de datos.
-   * - dto: datos enviados desde el cliente y validados por CreateTurnoDto.
-   * - Primero busca el paciente con el ID recibido.
-   * - Si el paciente no existe, lanza un error.
-   * - Luego crea un objeto Turno con la fecha convertida a Date,
-   *   y lo asocia al paciente encontrado.
-   * - Finalmente, guarda el turno en la base de datos.
+   * Crear un turno nuevo
+   * - Valido que exista el paciente (404 si no).
+   * - Guardo strings tal cual vienen (ya validados por el DTO).
    */
   async create(dto: CreateTurnoDto) {
-    const pacienteEncontrado = await this.repoPaciente.findOneBy({ id: dto.pacienteId });
+    const paciente = await this.pacientesRepo.findOne({ where: { id: dto.pacienteId } });
+    if (!paciente) throw new NotFoundException('Paciente no encontrado');
 
-    if (!pacienteEncontrado) {
-      throw new Error('Paciente no encontrado');
-    }
-
-    const turnoNuevo = this.repoTurno.create({
-      fecha: new Date(dto.fecha), // Conversión explícita para evitar errores de formato
-      hora: dto.hora,
+    const turno = this.turnosRepo.create({
+      fecha: dto.fecha,   // 'YYYY-MM-DD'
+      hora: dto.hora,     // 'HH:MM'
       razon: dto.razon,
-      paciente: pacienteEncontrado,
+      paciente,
     });
 
-    return this.repoTurno.save(turnoNuevo);
+    return this.turnosRepo.save(turno);
   }
 
   /**
-   * Devuelve todos los turnos almacenados.
-   * - `relations: ['paciente']` hace que también se incluya la información
-   *   del paciente asociado a cada turno.
+   * Listar todos los turnos (con el paciente relacionado)
+   * - Ordeno por fecha y hora para que sea más cómodo de ver.
    */
   findAll() {
-    return this.repoTurno.find({
+    return this.turnosRepo.find({
       relations: ['paciente'],
+      order: { fecha: 'ASC', hora: 'ASC' },
     });
   }
 
   /**
-   * Busca un turno específico por su ID.
-   * - También incluye el paciente asociado.
+   * Traer un turno puntual por ID
+   * - Si no existe, 404.
    */
-  findOne(id: number) {
-    return this.repoTurno.findOne({
+  async findOne(id: number) {
+    const turno = await this.turnosRepo.findOne({
       where: { id },
       relations: ['paciente'],
     });
+    if (!turno) throw new NotFoundException('Turno no encontrado');
+    return turno;
   }
 
   /**
-   * Actualiza un turno existente.
-   * - Busca el turno por ID.
-   * - Si no existe, lanza un error.
-   * - Si recibe una fecha, la convierte explícitamente a Date.
-   * - Si recibe hora o razón, las actualiza.
-   * - Guarda los cambios en la base de datos.
+   * Buscar turnos de un paciente específico
+   * - Usado por el endpoint: GET /patients/:id/appointments
+   */
+  findByPatient(pacienteId: number) {
+    return this.turnosRepo.find({
+      where: { paciente: { id: pacienteId } },
+      relations: ['paciente'],
+      order: { fecha: 'ASC', hora: 'ASC' },
+    });
+  }
+
+  /**
+   * Actualizar un turno
+   * - Solo toco los campos que vengan en el DTO (son opcionales).
+   * - Si viene pacienteId, valido que ese paciente exista y reasigno.
    */
   async update(id: number, dto: UpdateTurnoDto) {
-    const turno = await this.repoTurno.findOneBy({ id });
+    const turno = await this.findOne(id); // si no existe, findOne tira 404
 
-    if (!turno) {
-      throw new Error('Turno no encontrado');
+    // Si me mandan un cambio de paciente, lo valido y reasigno
+    if (dto.pacienteId !== undefined) {
+      const paciente = await this.pacientesRepo.findOne({ where: { id: dto.pacienteId } });
+      if (!paciente) throw new NotFoundException('Paciente no encontrado');
+      turno.paciente = paciente;
     }
 
-    if (dto.fecha) {
-      turno.fecha = new Date(dto.fecha);
-    }
+    // Actualizo campos simples solo si vienen
+    if (dto.fecha !== undefined) turno.fecha = dto.fecha;   // 'YYYY-MM-DD'
+    if (dto.hora  !== undefined) turno.hora  = dto.hora;    // 'HH:MM'
+    if (dto.razon !== undefined) turno.razon = dto.razon;
 
-    if (dto.hora) {
-      turno.hora = dto.hora;
-    }
-
-    if (dto.razon) {
-      turno.razon = dto.razon;
-    }
-
-    return this.repoTurno.save(turno);
+    return this.turnosRepo.save(turno);
   }
 
   /**
-   * Elimina un turno por ID.
-   * - No necesita cargar el turno completo; directamente ejecuta la eliminación.
+   * Borrar un turno por ID
+   * - Si no existe, 404 (por el findOne de arriba).
    */
-  remove(id: number) {
-    return this.repoTurno.delete(id);
+  async remove(id: number) {
+    const turno = await this.findOne(id);
+    await this.turnosRepo.remove(turno);
+    return { deleted: true, id };
   }
 }
