@@ -1,48 +1,85 @@
-// Este archivo define el controlador de pacientes.
-// Acá van todas las rutas que el frontend puede usar para trabajar con pacientes.
-// Por ejemplo: ver todos, crear uno nuevo, modificar uno existente o eliminarlo.
-
+// Importa el decorador @Controller y otros decoradores para manejar rutas y parámetros HTTP.
+// Estos decoradores indican a NestJS qué hacer cuando se recibe una petición en cierta ruta y con cierto método.
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+
+// Importa el servicio de pacientes, que contiene toda la lógica de negocio.
 import { PacientesService } from './pacientes.service';
+
+// Importa el DTO para crear pacientes (Data Transfer Object).
+// Define y valida qué datos se necesitan al crear un nuevo paciente.
 import { CreatePacienteDto } from './dto/create-paciente.dto';
+
+// Importa el DTO para actualizar pacientes.
+// Permite recibir datos parciales para modificar solo lo necesario.
 import { UpdatePacienteDto } from './dto/update-paciente.dto';
 
-// Todas las rutas que estén acá van a empezar con /pacientes
+/**
+ * @Controller('pacientes'):
+ * Define que todas las rutas de este controlador comenzarán con "/pacientes".
+ * Ejemplo: GET /pacientes, POST /pacientes, GET /pacientes/:id, etc.
+ */
 @Controller('pacientes')
 export class PacientesController {
+  /**
+   * Inyección de dependencias:
+   * - Recibimos una instancia de PacientesService automáticamente.
+   * - Esto nos permite llamar a la lógica definida en el servicio sin crearlo manualmente.
+   */
   constructor(private readonly pacientesService: PacientesService) {}
 
-  // POST /pacientes
-  // Crea un nuevo paciente. Los datos vienen en el body del request (JSON).
+  /**
+   * @Post():
+   * Maneja las peticiones POST a "/pacientes".
+   * - @Body() extrae el cuerpo de la petición (JSON enviado por el cliente).
+   * - createPacienteDto contiene los datos validados según CreatePacienteDto.
+   * - Llama al método create() del servicio para guardar el nuevo paciente.
+   */
   @Post()
   create(@Body() createPacienteDto: CreatePacienteDto) {
     return this.pacientesService.create(createPacienteDto);
   }
 
-  // GET /pacientes
-  // Devuelve todos los pacientes guardados en la base.
+  /**
+   * @Get():
+   * Maneja las peticiones GET a "/pacientes".
+   * - No recibe parámetros.
+   * - Devuelve todos los pacientes almacenados en la base de datos.
+   */
   @Get()
   findAll() {
     return this.pacientesService.findAll();
   }
 
-  // GET /pacientes/:id
-  // Busca un paciente por su ID (lo recibe como parámetro desde la URL).
+  /**
+   * @Get(':id'):
+   * Maneja las peticiones GET a "/pacientes/:id".
+   * - @Param('id') extrae el valor ":id" de la URL.
+   * - Los parámetros de la URL llegan como string, por eso convertimos con +id a número.
+   * - Devuelve un solo paciente que coincida con ese ID.
+   */
   @Get(':id')
   findOne(@Param('id') id: string) {
-    // Lo convertimos a número porque los parámetros vienen como string
     return this.pacientesService.findOne(+id);
   }
 
-  // PATCH /pacientes/:id
-  // Actualiza un paciente según su ID. Solo cambia los campos que se envíen en el body.
+  /**
+   * @Patch(':id'):
+   * Maneja las peticiones PATCH a "/pacientes/:id".
+   * - @Param('id') obtiene el ID desde la URL.
+   * - @Body() obtiene los datos a modificar (pueden ser campos parciales).
+   * - Llama al método update() del servicio para actualizar los datos del paciente.
+   */
   @Patch(':id')
   update(@Param('id') id: string, @Body() updatePacienteDto: UpdatePacienteDto) {
     return this.pacientesService.update(+id, updatePacienteDto);
   }
 
-  // DELETE /pacientes/:id
-  // Elimina un paciente por su ID.
+  /**
+   * @Delete(':id'):
+   * Maneja las peticiones DELETE a "/pacientes/:id".
+   * - Elimina el paciente con el ID indicado.
+   * - El método remove() del servicio se encarga de la operación.
+   */
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.pacientesService.remove(+id);
