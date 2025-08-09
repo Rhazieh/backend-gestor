@@ -3,9 +3,9 @@
 // NOTA: guardo fecha/hora como strings validadas ('YYYY-MM-DD' y 'HH:MM').
 //       No uso new Date(...) para evitar líos de zona horaria.
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 
 import { Turno } from './entities/turno.entity';
 import { Paciente } from '../pacientes/entities/paciente.entity';
@@ -25,11 +25,20 @@ export class TurnosService {
   /**
    * Crear un turno nuevo
    * - Valido que exista el paciente (404 si no).
+   * - Chequeo colisión fecha+hora (409 si ya existe).
    * - Guardo strings tal cual vienen (ya validados por el DTO).
    */
   async create(dto: CreateTurnoDto) {
     const paciente = await this.pacientesRepo.findOne({ where: { id: dto.pacienteId } });
     if (!paciente) throw new NotFoundException('Paciente no encontrado');
+
+    // ❗ Evitar duplicados (misma fecha y hora)
+    const yaExiste = await this.turnosRepo.findOne({
+      where: { fecha: dto.fecha, hora: dto.hora },
+    });
+    if (yaExiste) {
+      throw new ConflictException('Ya existe un turno en esa fecha y hora');
+    }
 
     const turno = this.turnosRepo.create({
       fecha: dto.fecha,   // 'YYYY-MM-DD'
@@ -81,6 +90,7 @@ export class TurnosService {
    * Actualizar un turno
    * - Solo toco los campos que vengan en el DTO (son opcionales).
    * - Si viene pacienteId, valido que ese paciente exista y reasigno.
+   * - Si cambian fecha u hora, checo colisión (409).
    */
   async update(id: number, dto: UpdateTurnoDto) {
     const turno = await this.findOne(id); // si no existe, findOne tira 404
@@ -90,6 +100,20 @@ export class TurnosService {
       const paciente = await this.pacientesRepo.findOne({ where: { id: dto.pacienteId } });
       if (!paciente) throw new NotFoundException('Paciente no encontrado');
       turno.paciente = paciente;
+    }
+
+    // Calculo "nuevos" valores tentativos
+    const nuevaFecha = dto.fecha ?? turno.fecha;
+    const nuevaHora  = dto.hora  ?? turno.hora;
+
+    // Si cambia fecha u hora, verifico colisión con OTRO turno
+    if (dto.fecha !== undefined || dto.hora !== undefined) {
+      const colision = await this.turnosRepo.findOne({
+        where: { fecha: nuevaFecha, hora: nuevaHora, id: Not(id) },
+      });
+      if (colision) {
+        throw new ConflictException('Ya existe un turno en esa fecha y hora');
+      }
     }
 
     // Actualizo campos simples solo si vienen
