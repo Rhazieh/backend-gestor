@@ -1,22 +1,53 @@
+// Importa validadores de la librería class-validator.
+// Estos decoradores permiten que NestJS valide automáticamente la entrada antes de llegar al servicio.
 import { IsNotEmpty, IsString, IsDateString, IsInt } from 'class-validator';
 
-// Este DTO (Data Transfer Object) sirve para validar los datos cuando se quiere crear un nuevo turno.
-// Se asegura que no falte ningún campo y que tengan el formato correcto.
-
+/**
+ * DTO (Data Transfer Object) para crear un nuevo turno.
+ * - Define la estructura de datos que se espera recibir.
+ * - Aplica validaciones automáticas usando class-validator.
+ * - Si la validación falla, NestJS devuelve un error 400 (Bad Request) antes de ejecutar la lógica.
+ */
 export class CreateTurnoDto {
-  @IsNotEmpty()        // No puede venir vacío
-  @IsDateString()      // Tiene que tener formato de fecha (yyyy-mm-dd)
+  /**
+   * fecha:
+   * - @IsNotEmpty(): Campo obligatorio, no puede ser null, undefined ni vacío.
+   * - @IsDateString(): Debe tener formato de fecha ISO válido (ej. "2025-08-09").
+   * - Se envía como string desde el frontend y luego se convierte a Date en el servicio.
+   */
+  @IsNotEmpty()
+  @IsDateString()
   fecha: string;
 
+  /**
+   * hora:
+   * - @IsNotEmpty(): Campo obligatorio.
+   * - @IsDateString(): Aunque representa solo la hora, se usa IsDateString para aprovechar la validación
+   *   de formato y compatibilidad con cómo TypeORM mapea fechas/horas.
+   *   Otra alternativa sería usar un validador personalizado o un patrón con @Matches().
+   * - En la base se guarda como string (ej: "14:30") definido en la entidad.
+   */
   @IsNotEmpty()
-  @IsDateString()      // También usamos formato de fecha aunque sea una hora, para que sea compatible con TypeORM
+  @IsDateString()
   hora: string;
 
+  /**
+   * razon:
+   * - @IsNotEmpty(): Campo obligatorio.
+   * - @IsString(): Debe ser texto (ej: "Consulta general").
+   * - No se valida la longitud aquí, pero podría agregarse con @Length(min, max).
+   */
   @IsNotEmpty()
-  @IsString()          // Debe ser un texto (por ejemplo: "Consulta general")
+  @IsString()
   razon: string;
 
+  /**
+   * pacienteId:
+   * - @IsNotEmpty(): Obligatorio.
+   * - @IsInt(): Debe ser un número entero (ID de un paciente existente en la base).
+   * - Este ID se usa para enlazar el turno al paciente correcto en la relación ManyToOne.
+   */
   @IsNotEmpty()
-  @IsInt()             // Tiene que ser un número entero (el ID del paciente al que se le asigna el turno)
-  pacienteId: number;  // Esto se usa para relacionar el turno con un paciente ya existente
+  @IsInt()
+  pacienteId: number;
 }
