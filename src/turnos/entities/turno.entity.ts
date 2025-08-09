@@ -1,25 +1,21 @@
-// Importo decoradores de TypeORM para definir una entidad de base de datos
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-// Importo la entidad Paciente para poder relacionar un turno con un paciente
 import { Paciente } from '../../pacientes/entities/paciente.entity';
 
-// @Entity() indica que esta clase se mapea a una tabla en la base de datos
 @Entity()
 export class Turno {
-  @PrimaryGeneratedColumn() // Columna ID autoincremental (PRIMARY KEY)
+  @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'date' })  // Columna tipo fecha en formato 'YYYY-MM-DD'
-  fecha: string;             // Ejemplo: '2025-08-15'
+  // 🔧 Hacemos nullable: true por datos viejos que están en NULL
+  @Column({ type: 'date', nullable: true })   // 'YYYY-MM-DD'
+  fecha: string | null;
 
-  @Column({ type: 'time' })  // Columna tipo hora en formato 'HH:MM' (24 horas)
-  hora: string;              // Ejemplo: '14:30'
+  @Column({ type: 'time', nullable: true })   // 'HH:MM'
+  hora: string | null;
 
-  @Column({ type: 'text' })  // Columna tipo texto libre
-  razon: string;             // Ejemplo: 'Consulta de control general'
+  @Column({ type: 'text', nullable: true })
+  razon: string | null;
 
-  // Relación Muchos-a-Uno: muchos turnos pueden pertenecer a un paciente
-  // 'onDelete: CASCADE' significa que si borro un paciente, se borran sus turnos
   @ManyToOne(() => Paciente, (p) => p.turnos, { onDelete: 'CASCADE' })
   paciente: Paciente;
 }
