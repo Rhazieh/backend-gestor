@@ -1,6 +1,6 @@
 // Importa el decorador @Injectable, que marca esta clase como un servicio en NestJS.
 // Los servicios son donde se concentra la lógica de negocio.
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 // Importa la función para inyectar un repositorio de TypeORM en un servicio.
 import { InjectRepository } from '@nestjs/typeorm';
@@ -79,7 +79,8 @@ export class PacientesService {
     const soloDatos = { ...datosActualizados } as any;
     delete soloDatos.turnos;
 
-    await this.pacienteRepo.update(id, soloDatos);
+    const res = await this.pacienteRepo.update(id, soloDatos);
+    if (!res.affected) throw new NotFoundException('Paciente no encontrado');
     return this.pacienteRepo.findOne({ where: { id }, relations: ['turnos'] });
   }
 
