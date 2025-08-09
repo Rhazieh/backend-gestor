@@ -1,41 +1,65 @@
-// Acá va toda la lógica que se encarga de manejar los pacientes.
-// Es decir: crear, buscar, actualizar y eliminar pacientes.
-// Para eso usamos un "repositorio" que se conecta a la base con TypeORM.
-
+// Importa el decorador @Injectable, que marca esta clase como un servicio en NestJS.
+// Los servicios son donde se concentra la lógica de negocio.
 import { Injectable } from '@nestjs/common';
+
+// Importa la función para inyectar un repositorio de TypeORM en un servicio.
 import { InjectRepository } from '@nestjs/typeorm';
+
+// Importa el tipo Repository de TypeORM, que representa una "puerta de entrada"
+// a la base de datos para una entidad específica.
 import { Repository } from 'typeorm';
 
+// Importa la entidad Paciente, que representa la tabla "pacientes" en la base de datos.
 import { Paciente } from './entities/paciente.entity';
+
+// Importa el DTO que define y valida los datos necesarios para crear un paciente.
 import { CreatePacienteDto } from './dto/create-paciente.dto';
+
+// Importa el DTO para actualizar un paciente con datos parciales.
 import { UpdatePacienteDto } from './dto/update-paciente.dto';
 
+// Marca la clase como un servicio inyectable en otros componentes (como controladores).
 @Injectable()
 export class PacientesService {
-  // Acá se inyecta el repositorio de la entidad Paciente.
-  // Eso nos da acceso a métodos como .find(), .create(), .update(), .delete(), etc.
+  /**
+   * Constructor con inyección de dependencias:
+   * - @InjectRepository(Paciente) le dice a NestJS que nos inyecte un repositorio
+   *   que trabaja específicamente con la entidad Paciente.
+   * - pacienteRepo nos permite acceder a métodos listos para interactuar con la DB:
+   *   find, findOne, save, update, delete, etc.
+   */
   constructor(
     @InjectRepository(Paciente)
-    private pacienteRepo: Repository<Paciente>, // Le cambié el nombre a "pacienteRepo" para que no se confunda con los métodos
+    private pacienteRepo: Repository<Paciente>,
   ) {}
 
-  // Crea un nuevo paciente en la base.
-  // Primero arma el objeto (sin guardarlo aún), y después lo guarda con save().
+  /**
+   * Crea un nuevo paciente en la base de datos.
+   * - Recibe un objeto con los datos validados (CreatePacienteDto).
+   * - `create()` construye una instancia de Paciente, pero no la guarda todavía.
+   * - `save()` guarda el objeto en la base y devuelve el registro ya almacenado.
+   */
   create(datosPaciente: CreatePacienteDto) {
     const pacienteNuevo = this.pacienteRepo.create(datosPaciente);
     return this.pacienteRepo.save(pacienteNuevo);
   }
 
-  // Devuelve todos los pacientes registrados en la base.
-  // Además, trae también los turnos de cada paciente si tienen (por eso usamos "relations").
+  /**
+   * Devuelve todos los pacientes guardados en la base de datos.
+   * - La opción `relations: ['turnos']` hace que también se traigan
+   *   todos los turnos asociados a cada paciente (relación 1:N).
+   */
   findAll() {
     return this.pacienteRepo.find({
       relations: ['turnos'],
     });
   }
 
-  // Busca un solo paciente por su ID.
-  // También incluye los turnos que tenga ese paciente.
+  /**
+   * Busca un solo paciente por su ID.
+   * - También incluye los turnos asociados gracias a `relations`.
+   * - `where: { id }` es equivalente a un "WHERE id = ..." en SQL.
+   */
   findOne(id: number) {
     return this.pacienteRepo.findOne({
       where: { id },
@@ -43,18 +67,27 @@ export class PacientesService {
     });
   }
 
-  // Actualiza un paciente según el ID y los nuevos datos recibidos.
-// Evita que se intente actualizar la relación "turnos", que no se puede desde acá.
-async update(id: number, datosActualizados: UpdatePacienteDto) {
-  const soloDatos = { ...datosActualizados } as any;
-  delete soloDatos.turnos;
+  /**
+   * Actualiza un paciente existente por ID.
+   * - Recibe datos parciales (UpdatePacienteDto).
+   * - Se crea una copia (`soloDatos`) y se elimina la propiedad `turnos`
+   *   para evitar que se intente modificar la relación directamente aquí.
+   * - `update()` aplica los cambios sin traer toda la entidad.
+   * - Luego hacemos un `findOne()` para devolver el registro ya actualizado.
+   */
+  async update(id: number, datosActualizados: UpdatePacienteDto) {
+    const soloDatos = { ...datosActualizados } as any;
+    delete soloDatos.turnos;
 
-  await this.pacienteRepo.update(id, soloDatos);
-  return this.pacienteRepo.findOne({ where: { id }, relations: ['turnos'] });
-}
+    await this.pacienteRepo.update(id, soloDatos);
+    return this.pacienteRepo.findOne({ where: { id }, relations: ['turnos'] });
+  }
 
-  // Elimina un paciente por ID.
-  // Si ese paciente tiene turnos, también se borran automáticamente (por la cascada definida en la entidad).
+  /**
+   * Elimina un paciente por ID.
+   * - Si en la entidad Paciente está configurada la opción "cascade" en la relación con turnos,
+   *   entonces también se eliminarán sus turnos automáticamente.
+   */
   remove(id: number) {
     return this.pacienteRepo.delete(id);
   }
