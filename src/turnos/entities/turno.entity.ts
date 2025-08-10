@@ -1,29 +1,46 @@
-// Importo decoradores de TypeORM para definir una entidad de base de datos
+// backend-gestor/src/turnos/entities/turno.entity.ts
+// -----------------------------------------------------------------------------
+// ENTIDAD Turno (TypeORM) -> se convierte en una tabla de la base de datos.
+// Cada propiedad decorada con @Column/@PrimaryGeneratedColumn es una columna.
+// Relación: muchos Turno pertenecen a un Paciente (ManyToOne).
+// Además agregamos una restricción UNIQUE (fecha, hora) para evitar duplicados
+// a nivel base de datos (además de chequearlo en el servicio).
+// -----------------------------------------------------------------------------
+
+// Decoradores/Tipos de TypeORM para mapear la clase a la tabla
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, Unique } from 'typeorm';
-// Importo la entidad Paciente para poder relacionar un turno con un paciente
+// Entidad relacionada (lado “dueño” del turno)
 import { Paciente } from '../../pacientes/entities/paciente.entity';
 
-// @Entity() indica que esta clase se mapea a una tabla en la base de datos
-// @Unique(['fecha','hora']) impide dos filas con la misma fecha+hora (a nivel DB).
-//  Nota: Postgres permite múltiples NULL bajo UNIQUE, así que los viejos registros
-//  con null no romperán la sincronización.
+// @Entity()  -> marca la clase como tabla.
+// @Unique(['fecha','hora']) -> índice/constraint único para que NO existan
+//                              dos filas con la MISMA combinación fecha+hora.
+// Nota sobre NULLs: Postgres permite múltiples NULL en columnas con UNIQUE,
+// por eso los registros viejos con fecha/hora null no rompen esta regla.
 @Entity()
 @Unique(['fecha', 'hora'])
 export class Turno {
-  @PrimaryGeneratedColumn() // Columna ID autoincremental (PRIMARY KEY)
+  @PrimaryGeneratedColumn() // PK autoincremental
   id: number;
 
-  @Column({ type: 'date' })  // Columna tipo fecha en formato 'YYYY-MM-DD'
-  fecha: string;             // Ejemplo: '2025-08-15'
+  @Column({ type: 'date' })  // columna DATE ('YYYY-MM-DD')
+  fecha: string;             // p. ej. '2025-08-15'
 
-  @Column({ type: 'time' })  // Columna tipo hora en formato 'HH:MM' (24 horas)
-  hora: string;              // Ejemplo: '14:30' -> se persiste como '14:30:00'
+  @Column({ type: 'time' })  // columna TIME ('HH:MM[:SS]')
+  hora: string;              // p. ej. '14:30' -> DB suele guardarlo como '14:30:00'
 
-  @Column({ type: 'text' })  // Columna tipo texto libre
-  razon: string;             // Ejemplo: 'Consulta de control general'
+  @Column({ type: 'text' })  // texto libre
+  razon: string;             // p. ej. 'Consulta de control general'
 
-  // Relación Muchos-a-Uno: muchos turnos pueden pertenecer a un paciente
-  // 'onDelete: CASCADE' significa que si borro un paciente, se borran sus turnos
+  // Muchos turnos -> un paciente
+  // onDelete: 'CASCADE'  -> si se elimina el Paciente, se borran sus Turnos.
   @ManyToOne(() => Paciente, (p) => p.turnos, { onDelete: 'CASCADE' })
   paciente: Paciente;
 }
+
+// -----------------------------------------------------------------------------
+// 📌 Siguiente archivo recomendado para seguir:
+// "backend-gestor/src/turnos/turnos.controller.ts" → endpoints REST que usan
+// esta entidad y el servicio. Si ya lo viste, pasá al front:
+// "frontend-gestor/src/app/turnos/turnos.service.ts" (consume estos endpoints).
+// -----------------------------------------------------------------------------
