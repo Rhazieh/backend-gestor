@@ -106,8 +106,4 @@ export class TurnosController {
     return this.turnosService.remove(id);
   }
 }
-// -----------------------------------------------------------------------------
-// 📌 Siguiente archivo recomendado para seguir:
-// "backend-gestor/src/turnos/turnos.service.ts" → toda la lógica de negocio
-// (crear/listar/actualizar/borrar turnos y helpers como findByPatient).
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
