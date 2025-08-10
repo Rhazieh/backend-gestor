@@ -1,32 +1,31 @@
-// Importa el decorador @Injectable, que marca esta clase como un servicio en NestJS.
-// Los servicios son donde se concentra la lógica de negocio.
+// backend-gestor/src/pacientes/pacientes.service.ts
+// -----------------------------------------------------------------------------
+// SERVICIO DE PACIENTES (NestJS + TypeORM)
+// Acá vive la lógica de negocio de "pacientes": crear, listar, buscar, actualizar y borrar.
+// El controller NO toca la base directamente: delega todo en este servicio.
+// -----------------------------------------------------------------------------
+
+// @Injectable permite que Nest cree e inyecte esta clase donde se necesite.
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-// Importa la función para inyectar un repositorio de TypeORM en un servicio.
+// InjectRepository inyecta un Repository<T> de TypeORM para nuestra entidad.
 import { InjectRepository } from '@nestjs/typeorm';
-
-// Importa el tipo Repository de TypeORM, que representa una "puerta de entrada"
-// a la base de datos para una entidad específica.
+// Repository ofrece métodos listos: find, findOne, save, update, delete, etc.
 import { Repository } from 'typeorm';
 
-// Importa la entidad Paciente, que representa la tabla "pacientes" en la base de datos.
+// Entidad que representa la tabla "paciente" en la base.
 import { Paciente } from './entities/paciente.entity';
 
-// Importa el DTO que define y valida los datos necesarios para crear un paciente.
+// DTOs que validan la forma de los datos de entrada.
 import { CreatePacienteDto } from './dto/create-paciente.dto';
-
-// Importa el DTO para actualizar un paciente con datos parciales.
 import { UpdatePacienteDto } from './dto/update-paciente.dto';
 
-// Marca la clase como un servicio inyectable en otros componentes (como controladores).
 @Injectable()
 export class PacientesService {
   /**
-   * Constructor con inyección de dependencias:
-   * - @InjectRepository(Paciente) le dice a NestJS que nos inyecte un repositorio
-   *   que trabaja específicamente con la entidad Paciente.
-   * - pacienteRepo nos permite acceder a métodos listos para interactuar con la DB:
-   *   find, findOne, save, update, delete, etc.
+   * Inyección del repositorio de Paciente:
+   * - Gracias a TypeOrmModule.forFeature([Paciente]) en el módulo,
+   *   Nest sabe cómo construir este Repository<Paciente>.
    */
   constructor(
     @InjectRepository(Paciente)
@@ -34,10 +33,10 @@ export class PacientesService {
   ) {}
 
   /**
-   * Crea un nuevo paciente en la base de datos.
-   * - Recibe un objeto con los datos validados (CreatePacienteDto).
-   * - `create()` construye una instancia de Paciente, pero no la guarda todavía.
-   * - `save()` guarda el objeto en la base y devuelve el registro ya almacenado.
+   * Crea un nuevo paciente.
+   * Flujo:
+   * 1) this.pacienteRepo.create(...) → arma la entidad en memoria (no guarda).
+   * 2) this.pacienteRepo.save(...)   → inserta/actualiza en la DB y devuelve el registro final.
    */
   create(datosPaciente: CreatePacienteDto) {
     const pacienteNuevo = this.pacienteRepo.create(datosPaciente);
@@ -45,9 +44,9 @@ export class PacientesService {
   }
 
   /**
-   * Devuelve todos los pacientes guardados en la base de datos.
-   * - La opción `relations: ['turnos']` hace que también se traigan
-   *   todos los turnos asociados a cada paciente (relación 1:N).
+   * Trae TODOS los pacientes.
+   * - relations: ['turnos'] → además de los datos del paciente,
+   *   carga la relación 1:N con sus turnos (definida en la entidad).
    */
   findAll() {
     return this.pacienteRepo.find({
@@ -56,9 +55,9 @@ export class PacientesService {
   }
 
   /**
-   * Busca un solo paciente por su ID.
-   * - También incluye los turnos asociados gracias a `relations`.
-   * - `where: { id }` es equivalente a un "WHERE id = ..." en SQL.
+   * Busca un paciente por ID.
+   * - where: { id } → equivalente a "WHERE id = ?".
+   * - relations: ['turnos'] → incluye sus turnos.
    */
   findOne(id: number) {
     return this.pacienteRepo.findOne({
@@ -68,12 +67,13 @@ export class PacientesService {
   }
 
   /**
-   * Actualiza un paciente existente por ID.
-   * - Recibe datos parciales (UpdatePacienteDto).
-   * - Se crea una copia (`soloDatos`) y se elimina la propiedad `turnos`
-   *   para evitar que se intente modificar la relación directamente aquí.
-   * - `update()` aplica los cambios sin traer toda la entidad.
-   * - Luego hacemos un `findOne()` para devolver el registro ya actualizado.
+   * Actualiza parcialmente un paciente.
+   * Tips:
+   * - Hacemos una copia del DTO y removemos "turnos" (si viniera) para
+   *   evitar modificar la relación desde acá.
+   * - update(id, datos) actualiza sin traer la entidad completa.
+   * - Si no afectó ninguna fila, tiramos NotFoundException (404).
+   * - Luego devolvemos el paciente ya actualizado con sus relaciones.
    */
   async update(id: number, datosActualizados: UpdatePacienteDto) {
     const soloDatos = { ...datosActualizados } as any;
@@ -81,15 +81,24 @@ export class PacientesService {
 
     const res = await this.pacienteRepo.update(id, soloDatos);
     if (!res.affected) throw new NotFoundException('Paciente no encontrado');
+
     return this.pacienteRepo.findOne({ where: { id }, relations: ['turnos'] });
   }
 
   /**
    * Elimina un paciente por ID.
-   * - Si en la entidad Paciente está configurada la opción "cascade" en la relación con turnos,
-   *   entonces también se eliminarán sus turnos automáticamente.
+   * - Si la relación Turno → Paciente tiene onDelete: 'CASCADE',
+   *   al borrar un paciente también se borran sus turnos.
+   * - delete(id) devuelve info de cuántas filas se afectaron.
    */
   remove(id: number) {
     return this.pacienteRepo.delete(id);
   }
 }
+// -----------------------------------------------------------------------------
+// 📌 Siguiente archivo recomendado para seguir:
+// "backend-gestor/src/pacientes/entities/paciente.entity.ts"
+// → para ver cómo está definida la tabla/relación con Turno.
+// Luego mirá "backend-gestor/src/turnos/turnos.service.ts" para entender
+// el otro lado de la relación (crear/listar turnos por paciente).
+// -----------------------------------------------------------------------------
