@@ -155,7 +155,3 @@ export class TurnosService {
   }
 }
 // -----------------------------------------------------------------------------
-// 📌 Siguiente archivo recomendado para seguir:
-// "backend-gestor/src/turnos/dto/create-turno.dto.ts"
-// → validaciones de entrada para crear (fecha/hora/razón/pacienteId).
-// -----------------------------------------------------------------------------
