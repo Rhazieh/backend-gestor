@@ -1,62 +1,70 @@
-// Importamos decoradores de TypeORM para definir una entidad y sus columnas.
-// - @Entity: Marca la clase como una tabla en la base de datos.
-// - @PrimaryGeneratedColumn: Define una columna que es clave primaria y autoincremental.
-// - @Column: Define una columna normal.
-// - @OneToMany: Define una relación uno-a-muchos con otra entidad.
+// backend-gestor/src/pacientes/entities/paciente.entity.ts
+// -----------------------------------------------------------------------------
+// ENTIDAD "PACIENTE" (TypeORM)
+// Esta clase mapea una tabla de la base de datos. Cada decorador (@Column, etc.)
+// le dice a TypeORM cómo crear/leer las columnas. La relación con Turno es 1:N:
+// un Paciente puede tener muchos Turnos.
+// -----------------------------------------------------------------------------
+
+// Decoradores de TypeORM para definir tabla, columnas y relaciones.
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 
-// Importa la entidad Turno para poder establecer la relación 1:N.
-// Esto indica que un paciente puede tener varios turnos asociados.
+// Importamos Turno para declarar la relación 1:N (Paciente → Turnos).
 import { Turno } from '../../turnos/entities/turno.entity';
 
 /**
- * La clase Paciente representa una tabla en la base de datos llamada "paciente".
- * Cada propiedad decorada con @Column (o similar) es una columna en esa tabla.
- * TypeORM se encarga de convertir esta clase en una tabla real.
+ * @Entity():
+ * - Señala que esta clase es una tabla de la DB.
+ * - Si no le pasás nombre, usa el nombre de la clase en snake_case (ej. "paciente").
  */
 @Entity()
 export class Paciente {
   /**
-   * @PrimaryGeneratedColumn:
-   * - Crea una columna llamada "id".
-   * - Es clave primaria (Primary Key).
-   * - Es autoincremental: cada nuevo paciente recibe un ID único automáticamente.
+   * @PrimaryGeneratedColumn():
+   * - Crea una columna "id" autoincremental (PRIMARY KEY).
    */
   @PrimaryGeneratedColumn()
   id: number;
 
   /**
    * @Column():
-   * - Crea una columna para almacenar el nombre del paciente.
-   * - Por defecto, es de tipo texto (VARCHAR en SQL).
+   * - Columna de texto para el nombre.
+   * - Por defecto VARCHAR (depende del motor).
    */
   @Column()
   nombre: string;
 
   /**
    * @Column():
-   * - Crea una columna para almacenar el email del paciente.
-   * - No tiene validación aquí, pero podría validarse en un DTO.
+   * - Columna de texto para el email.
+   * - La validación de formato se hace en el DTO (no acá).
    */
   @Column()
   email: string;
 
   /**
    * @Column():
-   * - Crea una columna para almacenar el número de teléfono del paciente.
+   * - Columna de texto para el teléfono.
    */
   @Column()
   telefono: string;
 
   /**
-   * @OneToMany():
-   * - Define la relación uno-a-muchos con la entidad Turno.
-   * - El primer parámetro `() => Turno` indica con qué entidad se relaciona.
-   * - El segundo parámetro `(turno) => turno.paciente` le dice a TypeORM
-   *   que esta relación está conectada con la propiedad "paciente" de la entidad Turno.
-   * - Esto crea una relación bidireccional: desde Paciente se puede acceder a sus turnos,
-   *   y desde un Turno se puede saber a qué paciente pertenece.
+   * @OneToMany(() => Turno, (turno) => turno.paciente)
+   * - Declara el "lado inverso" de la relación. Acá NO hay FK ni columna extra;
+   *   la FK vive del lado ManyToOne (en Turno.paciente) → ese es el "lado dueño".
+   * - Gracias a esto, cuando pedimos un Paciente con relations:['turnos'],
+   *   TypeORM trae el array de Turno[] asociado.
+   *
+   * Nota: el borrado en cascada se definió del lado de Turno con
+   *   onDelete: 'CASCADE' en @ManyToOne, por eso al borrar un paciente
+   *   se borran también sus turnos.
    */
   @OneToMany(() => Turno, (turno) => turno.paciente)
   turnos: Turno[];
 }
+// -----------------------------------------------------------------------------
+// 📌 Siguiente archivo recomendado para seguir:
+// "backend-gestor/src/turnos/entities/turno.entity.ts" → ver el lado ManyToOne,
+// la FK a Paciente y el onDelete: 'CASCADE' que completa la relación 1:N.
+// -----------------------------------------------------------------------------
