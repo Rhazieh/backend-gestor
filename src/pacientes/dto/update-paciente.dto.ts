@@ -20,8 +20,4 @@ import { CreatePacienteDto } from './create-paciente.dto';
  * - Mantiene las VALIDACIONES originales en cada campo que envíes.
  */
 export class UpdatePacienteDto extends PartialType(CreatePacienteDto) {}
-// -----------------------------------------------------------------------------
-// 📌 Siguiente archivo recomendado para seguir:
-// "backend-gestor/src/pacientes/entities/paciente.entity.ts"
-// → cómo se mapea Paciente a la tabla y cómo se relaciona con Turno (1:N).
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
