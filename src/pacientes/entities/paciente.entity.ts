@@ -63,8 +63,4 @@ export class Paciente {
   @OneToMany(() => Turno, (turno) => turno.paciente)
   turnos: Turno[];
 }
-// -----------------------------------------------------------------------------
-// 📌 Siguiente archivo recomendado para seguir:
-// "backend-gestor/src/turnos/entities/turno.entity.ts" → ver el lado ManyToOne,
-// la FK a Paciente y el onDelete: 'CASCADE' que completa la relación 1:N.
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
