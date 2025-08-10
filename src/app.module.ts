@@ -1,3 +1,5 @@
+// backend-gestor/src/app.module.ts
+
 // Importa el decorador @Module, que sirve para definir un módulo en NestJS.
 // Un módulo es como una "caja" que agrupa controladores, servicios y configuraciones relacionados.
 import { Module } from '@nestjs/common';
