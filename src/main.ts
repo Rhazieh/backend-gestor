@@ -35,8 +35,4 @@ async function iniciarApp() {
 // Sin esta línea, el servidor no se iniciaría.
 iniciarApp();
 
-// -----------------------------------------------------------------------------
-// 📌 Siguiente archivo recomendado para continuar:
-// "backend-gestor/src/app.module.ts" → es el módulo raíz que le estamos pasando a NestFactory
-// y define qué controladores, servicios y módulos se cargan al iniciar la app.
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
