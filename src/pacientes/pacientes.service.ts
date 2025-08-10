@@ -95,10 +95,4 @@ export class PacientesService {
     return this.pacienteRepo.delete(id);
   }
 }
-// -----------------------------------------------------------------------------
-// 📌 Siguiente archivo recomendado para seguir:
-// "backend-gestor/src/pacientes/entities/paciente.entity.ts"
-// → para ver cómo está definida la tabla/relación con Turno.
-// Luego mirá "backend-gestor/src/turnos/turnos.service.ts" para entender
-// el otro lado de la relación (crear/listar turnos por paciente).
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
