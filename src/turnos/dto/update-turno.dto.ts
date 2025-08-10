@@ -1,29 +1,42 @@
-// Importa PartialType desde @nestjs/mapped-types.
-// PartialType toma un DTO existente y genera una nueva clase
-// en la que todos los campos son OPCIONALES.
+// backend-gestor/src/turnos/dto/update-turno.dto.ts
+// -----------------------------------------------------------------------------
+// DTO para ACTUALIZAR un turno existente
+//
+// Idea clave: extender del DTO de creación pero volviendo TODOS los campos
+// opcionales. Así el cliente puede mandar solo lo que quiere cambiar.
+// Además:
+//  • Permitimos (opcional) cambiar el paciente: pacienteId?
+//  • Aceptamos hora en "HH:MM" o "HH:MM:SS" para ser tolerantes con lo que
+//    devuelva/envíe el front o la DB.
+// -----------------------------------------------------------------------------
+
+// PartialType toma un DTO base y lo convierte en “todos los campos opcionales”.
 import { PartialType } from '@nestjs/mapped-types';
 
-// Importa validadores extra por si queremos permitir cambiar el paciente también.
+// Validadores extra: opcionalidad, enteros y patrón para hora flexible.
 import { IsInt, IsOptional, Matches } from 'class-validator';
 
-// Importa el DTO de creación de turnos para reutilizar sus campos y validaciones.
+// Reutilizamos campos/validaciones de creación.
 import { CreateTurnoDto } from './create-turno.dto';
 
 /**
- * DTO para actualizar un turno existente.
- * - Extiende de PartialType(CreateTurnoDto):
- *   * Copia todos los campos y validaciones de CreateTurnoDto.
- *   * Marca cada campo como OPCIONAL.
- * - Además, permito (opcional) cambiar el paciente del turno usando pacienteId.
- * - Y permito hora con "HH:MM" **o** "HH:MM:SS" para compatibilidad.
+ * Extiende de PartialType(CreateTurnoDto):
+ *  - Copia todos los campos de CreateTurnoDto
+ *  - Los marca como OPCIONALES (para PATCH/PUT parciales)
  */
 export class UpdateTurnoDto extends PartialType(CreateTurnoDto) {
   @IsOptional()
   @IsInt()
-  // Cambiar el paciente del turno es opcional; si no viene, no se toca.
+  // Reasignar a otro paciente (si no viene, se mantiene el actual)
   pacienteId?: number;
 
   @IsOptional()
-  @Matches(/^\d{2}:\d{2}(:\d{2})?$/) // acepta HH:MM o HH:MM:SS
+  @Matches(/^\d{2}:\d{2}(:\d{2})?$/) // acepta "HH:MM" o "HH:MM:SS"
+  // Permitimos ambos formatos para evitar rechazar datos válidos que vengan con segundos.
   hora?: string;
 }
+// -----------------------------------------------------------------------------
+// 📌 Siguiente archivo recomendado para seguir:
+// "backend-gestor/src/turnos/entities/turno.entity.ts" → estructura en DB y
+// relación con Paciente (ManyToOne + onDelete: 'CASCADE').
+// -----------------------------------------------------------------------------
