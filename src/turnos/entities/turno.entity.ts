@@ -39,8 +39,3 @@ export class Turno {
 }
 
 // -----------------------------------------------------------------------------
-// 📌 Siguiente archivo recomendado para seguir:
-// "backend-gestor/src/turnos/turnos.controller.ts" → endpoints REST que usan
-// esta entidad y el servicio. Si ya lo viste, pasá al front:
-// "frontend-gestor/src/app/turnos/turnos.service.ts" (consume estos endpoints).
-// -----------------------------------------------------------------------------
