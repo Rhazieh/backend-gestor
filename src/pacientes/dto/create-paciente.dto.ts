@@ -47,8 +47,4 @@ export class CreatePacienteDto {
   @IsString()
   telefono: string;
 }
-// -----------------------------------------------------------------------------
-// 📌 Siguiente archivo recomendado para seguir:
-// "backend-gestor/src/pacientes/dto/update-paciente.dto.ts" → extiende de este
-// DTO con PartialType para que todos los campos sean opcionales al actualizar.
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
