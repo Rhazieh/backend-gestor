@@ -36,7 +36,3 @@ export class UpdateTurnoDto extends PartialType(CreateTurnoDto) {
   hora?: string;
 }
 // -----------------------------------------------------------------------------
-// 📌 Siguiente archivo recomendado para seguir:
-// "backend-gestor/src/turnos/entities/turno.entity.ts" → estructura en DB y
-// relación con Paciente (ManyToOne + onDelete: 'CASCADE').
-// -----------------------------------------------------------------------------
