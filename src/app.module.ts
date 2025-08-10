@@ -72,7 +72,3 @@ import { TurnosModule } from './turnos/turnos.module';
 export class AppModule {}
 
 // -----------------------------------------------------------------------------
-// 📌 Siguiente archivo recomendado para seguir:
-// 1) "backend-gestor/src/pacientes/pacientes.module.ts"  → cómo se arma un módulo de dominio.
-// 2) Luego "backend-gestor/src/turnos/turnos.module.ts"  → patrón similar aplicado a turnos.
-// -----------------------------------------------------------------------------
