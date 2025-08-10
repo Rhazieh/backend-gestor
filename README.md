@@ -66,3 +66,45 @@ https://backend-gestor-zfez.onrender.com
 
 Repositorio del frontend:  
 https://github.com/Rhazieh/frontend-gestor
+
+Indice de lectura recomendado:
+1. backend-gestor/src/main.ts
+
+
+2. backend-gestor/src/app.module.ts
+
+
+3. backend-gestor/src/pacientes/entities/paciente.entity.ts
+
+
+4. backend-gestor/src/turnos/entities/turno.entity.ts
+
+
+5. backend-gestor/src/pacientes/dto/create-paciente.dto.ts
+
+
+6. backend-gestor/src/pacientes/dto/update-paciente.dto.ts
+
+
+7. backend-gestor/src/turnos/dto/create-turno.dto.ts
+
+
+8. backend-gestor/src/turnos/dto/update-turno.dto.ts
+
+
+9. backend-gestor/src/pacientes/pacientes.service.ts
+
+
+10. backend-gestor/src/turnos/turnos.service.ts
+
+
+11. backend-gestor/src/pacientes/pacientes.controller.ts
+
+
+12. backend-gestor/src/turnos/turnos.controller.ts
+
+
+13. backend-gestor/src/pacientes/pacientes.module.ts
+
+
+14. backend-gestor/src/turnos/turnos.module.ts
