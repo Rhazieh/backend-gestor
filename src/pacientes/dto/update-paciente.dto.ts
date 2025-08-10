@@ -1,16 +1,27 @@
-// Importa PartialType desde @nestjs/mapped-types.
-// PartialType recibe una clase y crea una nueva versión donde todos los campos son opcionales.
+// backend-gestor/src/pacientes/dto/update-paciente.dto.ts
+// -----------------------------------------------------------------------------
+// DTO PARA ACTUALIZAR PACIENTES
+// En lugar de volver a escribir todas las reglas de CreatePacienteDto,
+// usamos PartialType(CreatePacienteDto) para decir:
+//   “Tomá el mismo DTO de creación, pero hacé TODOS sus campos OPCIONALES”.
+// Esto sirve para PATCH/PUT donde podés mandar solo lo que querés cambiar.
+// -----------------------------------------------------------------------------
+
+// PartialType viene de @nestjs/mapped-types y genera una clase “parcial”.
 import { PartialType } from '@nestjs/mapped-types';
 
-// Importa el DTO de creación para reutilizar su estructura y validaciones.
+// Reutilizamos la estructura y validaciones del DTO de creación.
 import { CreatePacienteDto } from './create-paciente.dto';
 
 /**
- * DTO para actualizar un paciente existente.
- * - Extiende de PartialType(CreatePacienteDto):
- *   Esto significa que toma todos los campos y validaciones de CreatePacienteDto,
- *   pero hace que sean opcionales.
- * - De esta forma, podemos enviar solo el campo que queremos modificar
- *   (por ejemplo, cambiar solo el email y dejar los demás igual).
+ * UpdatePacienteDto:
+ * - Hereda todos los campos de CreatePacienteDto (nombre, email, telefono).
+ * - Los marca como opcionales => podés enviar 1, 2 o los 3, o mezclar.
+ * - Mantiene las VALIDACIONES originales en cada campo que envíes.
  */
 export class UpdatePacienteDto extends PartialType(CreatePacienteDto) {}
+// -----------------------------------------------------------------------------
+// 📌 Siguiente archivo recomendado para seguir:
+// "backend-gestor/src/pacientes/entities/paciente.entity.ts"
+// → cómo se mapea Paciente a la tabla y cómo se relaciona con Turno (1:N).
+// -----------------------------------------------------------------------------
