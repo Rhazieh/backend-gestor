@@ -1,46 +1,48 @@
 // backend-gestor/src/app.module.ts
+// -----------------------------------------------------------------------------
+// MÓDULO RAÍZ DEL BACKEND (NestJS)
+// Acá “enchufamos” todo: configuración de variables de entorno (.env),
+// conexión a la base de datos (TypeORM + Postgres) y los módulos de dominio
+// (pacientes y turnos). Cuando en main.ts hacemos NestFactory.create(AppModule),
+// Nest arranca desde este módulo.
+// -----------------------------------------------------------------------------
 
-// Importa el decorador @Module, que sirve para definir un módulo en NestJS.
-// Un módulo es como una "caja" que agrupa controladores, servicios y configuraciones relacionados.
+// @Module me permite declarar qué importa, qué provee y qué expone este módulo.
 import { Module } from '@nestjs/common';
 
-// Importa el módulo de configuración, que permite usar variables de entorno (.env) en la aplicación.
+// ConfigModule: habilita leer variables de entorno (por ejemplo DATABASE_URL).
 import { ConfigModule } from '@nestjs/config';
 
-// Importa el módulo TypeORM, que es el ORM (Object Relational Mapper) para conectarnos a la base de datos.
+// TypeOrmModule: integra TypeORM (el ORM) con Nest.
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-// Importa los módulos personalizados de nuestra app.
-// Cada uno maneja una parte específica: pacientes y turnos.
+// Nuestros módulos de funcionalidad.
 import { PacientesModule } from './pacientes/pacientes.module';
 import { TurnosModule } from './turnos/turnos.module';
 
-// El decorador @Module define la configuración principal de este módulo raíz.
 @Module({
   imports: [
     /**
      * ConfigModule.forRoot():
-     * - Carga las variables de entorno desde el archivo .env (si existe).
-     * - `isGlobal: true` significa que este módulo estará disponible en toda la app
-     *   sin necesidad de importarlo en cada módulo.
+     * - Carga variables de entorno (por defecto busca un archivo .env en la raíz).
+     * - isGlobal: true → lo hace disponible en toda la app sin re-importar.
+     *   Ej: process.env.DATABASE_URL va a estar accesible en cualquier parte.
      */
     ConfigModule.forRoot({
       isGlobal: true,
     }),
 
     /**
-     * Configuración de la conexión a la base de datos usando TypeORM.
-     * Aquí le decimos:
-     * - `type: 'postgres'`: Usaremos PostgreSQL como motor de base de datos.
-     * - `url: process.env.DATABASE_URL`: Dirección completa de conexión,
-     *    tomada de una variable de entorno (ej. usuario, contraseña, host, puerto, base de datos).
-     * - `synchronize: true`: Sincroniza automáticamente las entidades con la base de datos
-     *    (útil en desarrollo, pero peligroso en producción porque puede borrar datos).
-     * - `autoLoadEntities: true`: Carga automáticamente todas las entidades registradas en cualquier módulo.
-     * - `ssl: true` y configuración extra:
-     *    * Se usa para conexiones seguras (importante en hosting como Render/Heroku).
-     *    * `rejectUnauthorized: false` permite aceptar certificados no verificados,
-     *      útil cuando el proveedor usa certificados auto-firmados.
+     * Conexión a la base con TypeORM (PostgreSQL):
+     * - type: 'postgres' → motor de la base.
+     * - url: process.env.DATABASE_URL → string de conexión completa (usuario, pass, host, puerto, DB).
+     * - synchronize: true → AUTO-sincroniza entidades ↔ tablas.
+     *      ⚠ Útil en desarrollo. En producción puede alterar el esquema.
+     * - autoLoadEntities: true → no necesito registrar manualmente cada entidad aquí:
+     *      con que estén en sus módulos (TypeOrmModule.forFeature([...])) alcanza.
+     * - ssl: true + extra.ssl.rejectUnauthorized=false:
+     *      Permite conexiones SSL incluso con certificados no verificados
+     *      (común en proveedores tipo Render/Heroku).
      */
     TypeOrmModule.forRoot({
       type: 'postgres',
@@ -56,16 +58,21 @@ import { TurnosModule } from './turnos/turnos.module';
     }),
 
     /**
-     * Importamos nuestros módulos personalizados:
-     * - PacientesModule: Maneja todo lo relacionado con pacientes.
-     * - TurnosModule: Maneja todo lo relacionado con turnos.
+     * Módulos propios de la app:
+     * - PacientesModule: endpoints y lógica de pacientes.
+     * - TurnosModule: endpoints y lógica de turnos.
      */
     PacientesModule,
     TurnosModule,
   ],
-  // En este módulo raíz no registramos controladores ni proveedores directamente.
+  // Este módulo raíz no declara controladores ni providers propios.
   controllers: [],
   providers: [],
 })
-// Exportamos la clase AppModule para que NestJS pueda usarla como módulo raíz.
 export class AppModule {}
+
+// -----------------------------------------------------------------------------
+// 📌 Siguiente archivo recomendado para seguir:
+// 1) "backend-gestor/src/pacientes/pacientes.module.ts"  → cómo se arma un módulo de dominio.
+// 2) Luego "backend-gestor/src/turnos/turnos.module.ts"  → patrón similar aplicado a turnos.
+// -----------------------------------------------------------------------------
