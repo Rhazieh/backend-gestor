@@ -64,8 +64,4 @@ import { TurnosModule } from '../turnos/turnos.module';
   exports: [PacientesService],
 })
 export class PacientesModule {}
-// -----------------------------------------------------------------------------
-// 📌 Siguiente archivo recomendado para seguir:
-// "backend-gestor/src/pacientes/pacientes.controller.ts" → vas a ver las rutas
-// en español/inglés y cómo delegan en PacientesService y TurnosService.
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
