@@ -1,22 +1,37 @@
-// Importo validadores de class-validator, que sirven para asegurarnos
-// de que los datos que recibimos cumplen con el formato que queremos
+// backend-gestor/src/turnos/dto/create-turno.dto.ts
+// -----------------------------------------------------------------------------
+// DTO (Data Transfer Object) para CREAR un turno
+// Define la FORMA y las REGLAS de lo que el backend acepta en el body.
+// El ValidationPipe global (ver main.ts) usa estos decoradores para validar
+// automáticamente la request y devolver 400 si algo no cumple.
+// Importante: acá solo validamos formato. Otras validaciones de negocio
+// (existencia de paciente, colisiones de fecha/hora) se hacen en TurnosService.
+// -----------------------------------------------------------------------------
+
+// Validadores de class-validator (se aplican campo por campo)
 import { IsNotEmpty, IsString, Matches } from 'class-validator';
 
-// DTO (Data Transfer Object) para CREAR un turno
-// Esto define qué campos tiene que mandar el cliente y cómo se validan
 export class CreateTurnoDto {
-  @IsNotEmpty() // No puede venir vacío
-  @Matches(/^\d{4}-\d{2}-\d{2}$/) // Expresión regular para fecha 'YYYY-MM-DD'
-  fecha: string; // Ejemplo válido: '2025-08-15'
+  @IsNotEmpty() // no se acepta null/undefined/''
+  @Matches(/^\d{4}-\d{2}-\d{2}$/) // formato exacto 'YYYY-MM-DD' (p. ej. '2025-08-15')
+  // Nota: no valida calendario real (31/02 pasaría). Para eso, validás en el servicio si querés.
+  fecha: string;
 
-  @IsNotEmpty() // No puede venir vacío
-  @Matches(/^\d{2}:\d{2}$/) // Expresión regular para hora 'HH:MM' en 24hs
-  hora: string; // Ejemplo válido: '14:30'
+  @IsNotEmpty()
+  @Matches(/^\d{2}:\d{2}$/) // formato exacto 'HH:MM' (24hs). Ej: '14:30'
+  // Nota: si llega '15:00:00' no pasa; el servicio guarda 'HH:MM' y el DB puede normalizar.
+  hora: string;
 
-  @IsNotEmpty() // No puede venir vacío
-  @IsString()   // Tiene que ser texto
-  razon: string; // Ejemplo: 'Consulta de control'
+  @IsNotEmpty()
+  @IsString() // texto libre (tu front ya limita y muestra errores)
+  razon: string; // Ej: 'Consulta de control'
 
-  @IsNotEmpty() // No puede venir vacío
-  pacienteId: number; // ID del paciente al que se le asigna este turno
+  @IsNotEmpty() // requerido para asociar el turno a un paciente existente
+  // El servicio verifica que el paciente con este id exista (404 si no)
+  pacienteId: number;
 }
+// -----------------------------------------------------------------------------
+// 📌 Siguiente archivo recomendado para seguir:
+// "backend-gestor/src/turnos/dto/update-turno.dto.ts" → mismos campos pero opcionales,
+// con la posibilidad de cambiar pacienteId (y las colisiones se checan en el servicio).
+// -----------------------------------------------------------------------------
