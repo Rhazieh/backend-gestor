@@ -31,7 +31,3 @@ export class CreateTurnoDto {
   pacienteId: number;
 }
 // -----------------------------------------------------------------------------
-// 📌 Siguiente archivo recomendado para seguir:
-// "backend-gestor/src/turnos/dto/update-turno.dto.ts" → mismos campos pero opcionales,
-// con la posibilidad de cambiar pacienteId (y las colisiones se checan en el servicio).
-// -----------------------------------------------------------------------------
