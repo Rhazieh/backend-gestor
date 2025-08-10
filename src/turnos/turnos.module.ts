@@ -1,8 +1,18 @@
-// Módulo de Turnos
-// Ajustado para:
-// - Exportar TurnosService (lo usa PacientesController)
-// - Importar PacientesModule con forwardRef (evita dependencia circular)
-// - Mantener repos de Turno y Paciente disponibles en este módulo
+// backend-gestor/src/turnos/turnos.module.ts
+// -----------------------------------------------------------------------------
+// MÓDULO DE TURNOS
+// Agrupa todo lo relacionado con Turnos:
+//  - Entidad Turno (tabla y mapeo TypeORM)
+//  - Servicio TurnosService (lógica de negocio)
+//  - Controlador TurnosController (rutas HTTP)
+//
+// Puntos clave de este módulo:
+// 1) Exporta TurnosService porque PacientesController lo usa para
+//    /patients/:id/appointments (listar/crear turnos de un paciente).
+// 2) Importa PacientesModule con forwardRef para resolver la dependencia circular
+//    (TurnosModule <-> PacientesModule).
+// 3) Registra los repos de TypeORM para Turno y Paciente en este módulo.
+// -----------------------------------------------------------------------------
 
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -18,8 +28,13 @@ import { PacientesModule } from '../pacientes/pacientes.module';
 @Module({
   /**
    * imports:
-   * - TypeOrmModule.forFeature([Turno, Paciente]): repos inyectables para este módulo
-   * - forwardRef(() => PacientesModule): permite que PacientesModule nos importe y viceversa
+   * - TypeOrmModule.forFeature([Turno, Paciente]):
+   *     Registra los repositorios de ambas entidades dentro de este módulo,
+   *     para poder inyectar Repository<Turno> y Repository<Paciente> en el servicio.
+   *
+   * - forwardRef(() => PacientesModule):
+   *     Evita problemas de dependencia circular porque PacientesModule también
+   *     importa TurnosModule. forwardRef difiere la resolución hasta runtime.
    */
   imports: [
     TypeOrmModule.forFeature([Turno, Paciente]),
@@ -28,20 +43,27 @@ import { PacientesModule } from '../pacientes/pacientes.module';
 
   /**
    * controllers:
-   * - TurnosController: rutas de /turnos (y luego podemos sumar alias si querés)
+   * - TurnosController: define las rutas (POST/GET/PUT/PATCH/DELETE) de turnos.
    */
   controllers: [TurnosController],
 
   /**
    * providers:
-   * - TurnosService: lógica de negocio de turnos
+   * - TurnosService: contiene la lógica de negocio (crear, listar, actualizar, borrar,
+   *   y helpers como findByPatient).
    */
   providers: [TurnosService],
 
   /**
    * exports:
-   * - Exporto TurnosService para que PacientesController pueda inyectarlo
+   * - TurnosService: lo exponemos para que otros módulos (p. ej. PacientesModule)
+   *   lo puedan inyectar en sus controladores/servicios.
    */
   exports: [TurnosService],
 })
 export class TurnosModule {}
+// -----------------------------------------------------------------------------
+// 📌 Siguiente archivo recomendado para seguir:
+// "backend-gestor/src/turnos/turnos.controller.ts" → ver las rutas REST de turnos
+// (incluye alias en inglés /appointments).
+// -----------------------------------------------------------------------------
