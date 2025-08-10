@@ -108,8 +108,4 @@ export class PacientesController {
     } as any);
   }
 }
-// -----------------------------------------------------------------------------
-// 📌 Siguiente archivo recomendado para seguir:
-// "backend-gestor/src/pacientes/pacientes.service.ts" → ahí está la lógica real
-// de pacientes (acceso a base, create/find/update/delete) que este controller usa.
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
