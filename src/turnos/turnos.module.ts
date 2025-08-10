@@ -62,8 +62,4 @@ import { PacientesModule } from '../pacientes/pacientes.module';
   exports: [TurnosService],
 })
 export class TurnosModule {}
-// -----------------------------------------------------------------------------
-// 📌 Siguiente archivo recomendado para seguir:
-// "backend-gestor/src/turnos/turnos.controller.ts" → ver las rutas REST de turnos
-// (incluye alias en inglés /appointments).
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
