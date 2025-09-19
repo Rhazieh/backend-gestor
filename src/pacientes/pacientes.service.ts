@@ -1,8 +1,9 @@
 // backend-gestor/src/pacientes/pacientes.service.ts
 // -----------------------------------------------------------------------------
 // SERVICIO DE PACIENTES (NestJS + TypeORM)
-// Acá vive la lógica de negocio de "pacientes": crear, listar, buscar, actualizar y borrar.
-// El controller NO toca la base directamente: delega todo en este servicio.
+// Guía de lectura: concentra la lógica de negocio para crear, listar, buscar,
+// actualizar y borrar pacientes. El controller delega en este servicio y este
+// servicio usa Repository<Paciente> para acceder a la DB.
 // -----------------------------------------------------------------------------
 
 // @Injectable permite que Nest cree e inyecte esta clase donde se necesite.

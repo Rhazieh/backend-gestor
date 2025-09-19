@@ -1,0 +1,207 @@
+{
+  "info": {
+    "name": "Gestor de Turnos - Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Colección Postman para probar la API NestJS (Pacientes y Turnos). Usa la variable {{baseUrl}}."
+  },
+  "item": [
+    {
+      "name": "Pacientes",
+      "item": [
+        {
+          "name": "Listar pacientes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pacientes",
+              "host": ["{{baseUrl}}"],
+              "path": ["pacientes"]
+            }
+          }
+        },
+        {
+          "name": "Crear paciente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Juan Perez\",\n  \"email\": \"juan@example.com\",\n  \"telefono\": \"1111111111\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pacientes",
+              "host": ["{{baseUrl}}"],
+              "path": ["pacientes"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar paciente (PUT)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Juan P.\",\n  \"email\": \"juanp@example.com\",\n  \"telefono\": \"2222222222\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pacientes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["pacientes","1"]
+            }
+          }
+        },
+        {
+          "name": "Eliminar paciente",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pacientes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["pacientes","1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Turnos",
+      "item": [
+        {
+          "name": "Listar turnos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/turnos",
+              "host": ["{{baseUrl}}"],
+              "path": ["turnos"]
+            }
+          }
+        },
+        {
+          "name": "Filtrar turnos por fecha",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/turnos?fecha=2025-09-20",
+              "host": ["{{baseUrl}}"],
+              "path": ["turnos"],
+              "query": [
+                {"key": "fecha", "value": "2025-09-20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filtrar turnos por pacienteId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/turnos?pacienteId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["turnos"],
+              "query": [
+                {"key": "pacienteId", "value": "1"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Crear turno",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fecha\": \"2025-09-20\",\n  \"hora\": \"10:30\",\n  \"razon\": \"Consulta general\",\n  \"pacienteId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/turnos",
+              "host": ["{{baseUrl}}"],
+              "path": ["turnos"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar turno (PUT)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fecha\": \"2025-09-21\",\n  \"hora\": \"11:00\",\n  \"razon\": \"Cambio de horario\",\n  \"pacienteId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/turnos/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["turnos","1"]
+            }
+          }
+        },
+        {
+          "name": "Eliminar turno",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/turnos/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["turnos","1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Appointments (anidados)",
+      "item": [
+        {
+          "name": "Listar turnos de un paciente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/patients/1/appointments",
+              "host": ["{{baseUrl}}"],
+              "path": ["patients","1","appointments"]
+            }
+          }
+        },
+        {
+          "name": "Crear turno para paciente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fecha\": \"2025-09-22\",\n  \"hora\": \"09:15\",\n  \"razon\": \"Control\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/patients/1/appointments",
+              "host": ["{{baseUrl}}"],
+              "path": ["patients","1","appointments"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" }
+  ]
+}

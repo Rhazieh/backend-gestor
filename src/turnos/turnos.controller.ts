@@ -1,7 +1,8 @@
 // backend-gestor/src/turnos/turnos.controller.ts
 // -----------------------------------------------------------------------------
 // CONTROLADOR DE TURNOS (NestJS)
-// Expone las rutas HTTP para manejar turnos.
+// Guía de lectura: define endpoints para manejar turnos (crear, listar,
+// consultar, actualizar, eliminar). Delegamos toda la lógica en TurnosService.
 // Importante: responde con DOS prefijos a la vez para no romper nada y cumplir el enunciado:
 //   - Español:      /turnos
 //   - Inglés:       /appointments
@@ -23,6 +24,7 @@ import {
   Param,
   Delete,
   ParseIntPipe, // Convierte params string → number y tira 400 si no puede.
+  Query,
 } from '@nestjs/common';
 
 import { TurnosService } from './turnos.service';
@@ -56,7 +58,15 @@ export class TurnosController {
    * - El service ya los ordena por fecha/hora y trae el paciente relacionado.
    */
   @Get()
-  findAll() {
+  findAll(
+    @Query('fecha') fecha?: string, // 'YYYY-MM-DD'
+    @Query('pacienteId') pacienteId?: string, // number en string
+  ) {
+    // Si llegan filtros por query, delegamos al service para filtrar en DB.
+    if (fecha || pacienteId) {
+      const pid = pacienteId ? Number(pacienteId) : undefined;
+      return this.turnosService.findByFilters({ fecha, pacienteId: pid });
+    }
     return this.turnosService.findAll();
   }
 

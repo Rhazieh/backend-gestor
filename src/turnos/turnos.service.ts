@@ -1,7 +1,9 @@
 // backend-gestor/src/turnos/turnos.service.ts
 // -----------------------------------------------------------------------------
 // SERVICIO DE TURNOS (lógica de negocio, acceso a DB con TypeORM)
-// Acá centralizamos todo lo de Turnos:
+// Guía de lectura: centraliza reglas de turnos (crear, listar, buscar,
+// actualizar, eliminar). Aplica validaciones de negocio: existencia de paciente,
+// anti-duplicado por fecha+hora y consistencia al actualizar.
 //  - crear turnos (validando paciente y evitando choques de fecha+hora)
 //  - listar turnos (con su paciente y ordenados)
 //  - buscar por id / por paciente
@@ -100,6 +102,26 @@ export class TurnosService {
   findByPatient(pacienteId: number) {
     return this.turnosRepo.find({
       where: { paciente: { id: pacienteId } },
+      relations: ['paciente'],
+      order: { fecha: 'ASC', hora: 'ASC' },
+    });
+  }
+
+  /**
+   * Filtrar turnos por fecha (YYYY-MM-DD) y/o pacienteId.
+   * - Si se pasan ambos, aplica AND.
+   * - Si no se pasa ninguno, devuelve todo (igual que findAll).
+   */
+  findByFilters({ fecha, pacienteId }: { fecha?: string; pacienteId?: number }) {
+    const where: any = {};
+    if (fecha) where.fecha = fecha;
+    if (pacienteId !== undefined) where.paciente = { id: pacienteId };
+
+    // Si no se pasaron filtros, reuso findAll()
+    if (Object.keys(where).length === 0) return this.findAll();
+
+    return this.turnosRepo.find({
+      where,
       relations: ['paciente'],
       order: { fecha: 'ASC', hora: 'ASC' },
     });

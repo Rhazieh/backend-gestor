@@ -11,6 +11,52 @@ import { AppModule } from './app.module';
 // ValidationPipe: pipe global para validar/transformar datos entrantes (DTOs).
 import { ValidationPipe } from '@nestjs/common';
 
+/**
+ * Guía de lectura (Backend - NestJS)
+ * ----------------------------------------------------------------------------
+ * ¿Qué hace esta app?
+ * - Expone una API REST para gestionar Pacientes y Turnos (citas).
+ * - Usa NestJS (arquitectura modular) + TypeORM (PostgreSQL).
+ *
+ * ¿Por dónde empiezo a leer?
+ * 1) src/app.module.ts
+ *    - Módulo raíz. Conecta ConfigModule, TypeOrmModule (DB) y módulos de dominio.
+ *    - Enlaza PacientesModule y TurnosModule.
+ * 2) src/pacientes/* y src/turnos/*
+ *    - Estructura típica por feature:
+ *      controller -> define endpoints HTTP
+ *      service    -> lógica de negocio/acceso a datos
+ *      entities   -> entidades TypeORM (tablas)
+ *      dto        -> validaciones de entrada (class-validator)
+ * 3) src/main.ts (este archivo)
+ *    - Arranque del servidor, CORS y ValidationPipe global.
+ *
+ * Flujo de una petición (ejemplo POST /turnos):
+ * - Controller recibe el body -> Nest aplica ValidationPipe con DTO ->
+ *   Service ejecuta reglas (chequea paciente, evita duplicados) ->
+ *   Repositorio TypeORM guarda y devuelve la entidad.
+ *
+ * Configuración y entorno:
+ * - Puerto: PORT o 3000 por defecto.
+ * - DB: DATABASE_URL (Render/producción) o fallback local postgres://postgres:postgres@localhost:5432/turnos
+ * - SSL en DB: habilitalo con DATABASE_SSL=true para proveedores que lo requieran.
+ * - CORS: habilitado para permitir front en distinto puerto.
+ *
+ * Archivos clave (lectura sugerida):
+ * - src/app.module.ts
+ * - src/pacientes/pacientes.controller.ts
+ * - src/pacientes/pacientes.service.ts
+ * - src/pacientes/entities/paciente.entity.ts
+ * - src/turnos/turnos.controller.ts
+ * - src/turnos/turnos.service.ts
+ * - src/turnos/entities/turno.entity.ts
+ *
+ * Extensiones simples:
+ * - Agregar autenticación (JWT) -> nuevo módulo AuthModule.
+ * - Cambiar a migraciones TypeORM (desactivar synchronize en prod).
+ * - Crear /health para chequeo de estado.
+ */
+
 // Función asíncrona que inicializa el servidor.
 // Es async porque crear la app y ponerla a escuchar son operaciones que tardan.
 async function iniciarApp() {

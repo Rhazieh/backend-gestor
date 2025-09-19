@@ -1,6 +1,9 @@
 // backend-gestor/src/pacientes/pacientes.controller.ts
 // -----------------------------------------------------------------------------
 // CONTROLADOR DE PACIENTES (NestJS)
+// Guía de lectura: este controller define las rutas HTTP de Pacientes y delega
+// la lógica en PacientesService. También usa TurnosService para endpoints
+// anidados de appointments bajo /patients/:id/appointments.
 // Expone rutas REST para crear, listar, editar y borrar pacientes.
 // Además, agrega las rutas "anidadas" para ver/crear turnos de un paciente.
 // Nota: el mismo controller responde en español e inglés.

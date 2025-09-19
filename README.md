@@ -6,23 +6,30 @@ Tecnologías usadas:
 - TypeORM
 - Render (para el deploy)
 
-Pasos para correrlo localmente:
+Pasos para correrlo localmente (localhost:3000):
 
-1. Clonar el repo:
-   git clone https://github.com/Rhazieh/backend-gestor.git
+1) Instalar dependencias
 
-2. Instalar dependencias:
    npm install
 
-3. Crear un archivo `.env` en la raíz con estos datos (adaptar a tu config):
-   DB_HOST=localhost  
-   DB_PORT=5432  
-   DB_USERNAME=postgres  
-   DB_PASSWORD=tu_contraseña  
-   DB_NAME=gestor_db
+2) Levantar PostgreSQL (opcional pero recomendado con docker-compose)
 
-4. Levantar el servidor:
+   docker compose -f docker-compose.yml up -d
+
+   Esto te deja una base accesible en postgres://postgres:postgres@localhost:5432/turnos
+
+3) Crear variables de entorno
+
+   Copiá `.env.example` a `.env` y ajustá si hace falta. Por defecto, si no configurás nada,
+   el backend usará la URL local de arriba y el puerto 3000.
+
+   cp .env.example .env
+
+4) Ejecutar en desarrollo (watch)
+
    npm run start:dev
+
+   La API quedará en http://localhost:3000 con CORS habilitado.
 
 Endpoints disponibles:
 
@@ -39,6 +46,11 @@ Turnos:
 - GET /turnos/:id
 - PATCH /turnos/:id
 - DELETE /turnos/:id
+
+Filtros (Turnos):
+- GET /turnos?fecha=YYYY-MM-DD
+- GET /turnos?pacienteId=ID
+- GET /turnos?fecha=YYYY-MM-DD&pacienteId=ID
 
 Turnos por paciente:
 - GET /pacientes/:id/appointments
@@ -63,6 +75,14 @@ turno:
 
 Deploy en Render (puede tardar unos segundos en arrancar si estuvo inactivo):  
 https://backend-gestor-zfez.onrender.com
+
+Colección Postman:
+- Archivo: postman_collection.json (incluido en este repo)
+- Cómo usar:
+   1) Abrí Postman, Import > File > seleccioná postman_collection.json
+   2) Definí la variable de entorno `baseUrl` si querés apuntar a Render en vez de localhost
+       (por defecto ya apunta a http://localhost:3000).
+   3) Probá los requests: CRUD de Pacientes, CRUD de Turnos, Filtros y Appointments anidados.
 
 Repositorio del frontend:  
 https://github.com/Rhazieh/frontend-gestor

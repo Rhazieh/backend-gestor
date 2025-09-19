@@ -44,17 +44,23 @@ import { TurnosModule } from './turnos/turnos.module';
      *      Permite conexiones SSL incluso con certificados no verificados
      *      (común en proveedores tipo Render/Heroku).
      */
+    // Config DB lista para local y producción:
+    // - Si no hay DATABASE_URL, usa por defecto Postgres local (docker-compose)
+    // - SSL sólo si DATABASE_SSL === 'true' (útil en Render/Heroku)
     TypeOrmModule.forRoot({
       type: 'postgres',
-      url: process.env.DATABASE_URL,
+      url:
+        process.env.DATABASE_URL ??
+        'postgres://postgres:postgres@localhost:5432/turnos',
       synchronize: true,
       autoLoadEntities: true,
-      ssl: true,
-      extra: {
-        ssl: {
-          rejectUnauthorized: false,
-        },
-      },
+      ssl: process.env.DATABASE_SSL === 'true' ? true : false,
+      extra:
+        process.env.DATABASE_SSL === 'true'
+          ? {
+              ssl: { rejectUnauthorized: false },
+            }
+          : undefined,
     }),
 
     /**
