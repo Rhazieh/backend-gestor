@@ -1,0 +1,316 @@
+{
+	"info": {
+		"_postman_id": "33cf8590-3d21-4168-a1c9-ae4747b16740",
+		"name": "Entrega 1 - Backend Gestor (FINAL)",
+		"description": "Colección funcional y encadenada para la Primera Entrega (NestJS). Utiliza scripts de Post-response para gestionar IDs dinámicos y asegurar que todas las peticiones CRUD/Relación/Filtro funcionen correctamente al ejecutarse con el Runner.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "49591985",
+		"_collection_link": "https://rhazieh-9006013.postman.co/workspace/Maxi's-Workspace~b98de7a0-fa06-410e-8924-609f5f2d4705/collection/49591985-33cf8590-3d21-4168-a1c9-ae4747b16740?action=share&source=collection_link&creator=49591985"
+	},
+	"item": [
+		{
+			"name": "Pacientes (CRUD + Relación)",
+			"item": [
+				{
+					"name": "1. Crear paciente (POST)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Guarda el ID del paciente creado para usarlo en otras peticiones",
+									"const responseBody = pm.response.json();",
+									"if (responseBody && responseBody.id) {",
+									"    pm.environment.set(\"PACIENTE_ID\", responseBody.id);",
+									"    pm.collectionVariables.set(\"PACIENTE_ID\", responseBody.id);",
+									"    console.log(\"ID del Paciente Creado: \" + responseBody.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"Roberto González\",\n  \"email\": \"roberto.g@test.com\",\n  \"telefono\": \"1133445566\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/pacientes",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pacientes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2. Listar pacientes (GET)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/pacientes",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pacientes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3. Actualizar paciente (PUT) - Usa ID Dinámico",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"Roberto González (EDITADO)\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/pacientes/{{PACIENTE_ID}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pacientes",
+								"{{PACIENTE_ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4. Listar turnos de un paciente (GET anidado)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/patients/{{PACIENTE_ID}}/appointments",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"patients",
+								"{{PACIENTE_ID}}",
+								"appointments"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Turnos (CRUD + Filtros)",
+			"item": [
+				{
+					"name": "5. Crear turno (POST) - Usa ID Dinámico",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Guarda el ID del turno creado para usarlo en PUT/DELETE",
+									"const responseBody = pm.response.json();",
+									"if (responseBody && responseBody.id) {",
+									"    pm.environment.set(\"TURNO_ID\", responseBody.id);",
+									"    pm.collectionVariables.set(\"TURNO_ID\", responseBody.id);",
+									"    console.log(\"ID del Turno Creado: \" + responseBody.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fecha\": \"2025-11-20\",\n  \"hora\": \"10:30\",\n  \"razon\": \"Consulta de control final\",\n  \"pacienteId\": \"{{PACIENTE_ID}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/turnos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"turnos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "6. Listar turnos (GET)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/turnos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"turnos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "7. Filtrar turnos por fecha (GET)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/turnos?fecha=2025-11-20",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"turnos"
+							],
+							"query": [
+								{
+									"key": "fecha",
+									"value": "2025-11-20"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "8. Filtrar turnos por pacienteId (GET) - Usa ID Dinámico",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/turnos?pacienteId={{PACIENTE_ID}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"turnos"
+							],
+							"query": [
+								{
+									"key": "pacienteId",
+									"value": "{{PACIENTE_ID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "9. Actualizar turno (PUT) - Usa ID Dinámico",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"razon\": \"Cambio de motivo de consulta (ACTUALIZADO)\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/turnos/{{TURNO_ID}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"turnos",
+								"{{TURNO_ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "10. Eliminar turno (DELETE) - Usa ID Dinámico",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/turnos/{{TURNO_ID}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"turnos",
+								"{{TURNO_ID}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Limpieza (DELETE final)",
+			"item": [
+				{
+					"name": "11. Eliminar paciente (DELETE) - Usa ID Dinámico",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/pacientes/{{PACIENTE_ID}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pacientes",
+								"{{PACIENTE_ID}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000"
+		},
+		{
+			"key": "PACIENTE_ID",
+			"value": ""
+		},
+		{
+			"key": "TURNO_ID",
+			"value": ""
+		}
+	]
+}
