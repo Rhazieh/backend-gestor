@@ -14,22 +14,22 @@ import { ValidationPipe } from '@nestjs/common';
 /**
  * Guía de lectura (Backend - NestJS)
  * ----------------------------------------------------------------------------
- * ¿Qué hace esta app?
+  * ¿Qué hace esta app?
  * - Expone una API REST para gestionar Pacientes y Turnos (citas).
  * - Usa NestJS (arquitectura modular) + TypeORM (PostgreSQL).
  *
  * ¿Por dónde empiezo a leer?
- * 1) src/app.module.ts
+ * 1) src/main.ts (este archivo)
+ *    - Punto de entrada: arranque del servidor, CORS y ValidationPipe global.
+ * 2) src/app.module.ts
  *    - Módulo raíz. Conecta ConfigModule, TypeOrmModule (DB) y módulos de dominio.
  *    - Enlaza PacientesModule y TurnosModule.
- * 2) src/pacientes/* y src/turnos/*
+ * 3) src/pacientes/* y src/turnos/*
  *    - Estructura típica por feature:
  *      controller -> define endpoints HTTP
  *      service    -> lógica de negocio/acceso a datos
  *      entities   -> entidades TypeORM (tablas)
  *      dto        -> validaciones de entrada (class-validator)
- * 3) src/main.ts (este archivo)
- *    - Arranque del servidor, CORS y ValidationPipe global.
  *
  * Flujo de una petición (ejemplo POST /turnos):
  * - Controller recibe el body -> Nest aplica ValidationPipe con DTO ->
@@ -39,10 +39,11 @@ import { ValidationPipe } from '@nestjs/common';
  * Configuración y entorno:
  * - Puerto: PORT o 3000 por defecto.
  * - DB: DATABASE_URL (Render/producción) o fallback local postgres://postgres:postgres@localhost:5432/turnos
- * - SSL en DB: habilitalo con DATABASE_SSL=true para proveedores que lo requieran.
+ * - SSL en DB: habilitar con DATABASE_SSL=true para proveedores que lo requieran.
  * - CORS: habilitado para permitir front en distinto puerto.
  *
  * Archivos clave (lectura sugerida):
+ * - src/main.ts
  * - src/app.module.ts
  * - src/pacientes/pacientes.controller.ts
  * - src/pacientes/pacientes.service.ts
@@ -50,11 +51,6 @@ import { ValidationPipe } from '@nestjs/common';
  * - src/turnos/turnos.controller.ts
  * - src/turnos/turnos.service.ts
  * - src/turnos/entities/turno.entity.ts
- *
- * Extensiones simples:
- * - Agregar autenticación (JWT) -> nuevo módulo AuthModule.
- * - Cambiar a migraciones TypeORM (desactivar synchronize en prod).
- * - Crear /health para chequeo de estado.
  */
 
 // Función asíncrona que inicializa el servidor.
