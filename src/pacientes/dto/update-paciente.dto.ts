@@ -1,23 +1,21 @@
 // backend-gestor/src/pacientes/dto/update-paciente.dto.ts
 // -----------------------------------------------------------------------------
 // DTO PARA ACTUALIZAR PACIENTES
-// En lugar de volver a escribir todas las reglas de CreatePacienteDto,
-// usamos PartialType(CreatePacienteDto) para decir:
-//   “Tomá el mismo DTO de creación, pero hacé TODOS sus campos OPCIONALES”.
-// Esto sirve para PATCH/PUT donde podés mandar solo lo que querés cambiar.
+// Decidí extender del DTO de creación con PartialType para no duplicar reglas.
+// Traducción: "tomá CreatePacienteDto y volvé TODOS sus campos opcionales".
+// Me sirve para PATCH/PUT donde quiero mandar solo lo que cambia.
 // -----------------------------------------------------------------------------
 
-// PartialType viene de @nestjs/mapped-types y genera una clase “parcial”.
+// Acordate: PartialType (de @nestjs/mapped-types) genera una clase “parcial”.
 import { PartialType } from '@nestjs/mapped-types';
 
-// Reutilizamos la estructura y validaciones del DTO de creación.
+// Reutilizo la estructura y validaciones del DTO de creación.
 import { CreatePacienteDto } from './create-paciente.dto';
 
 /**
- * UpdatePacienteDto:
- * - Hereda todos los campos de CreatePacienteDto (nombre, email, telefono).
- * - Los marca como opcionales => podés enviar 1, 2 o los 3, o mezclar.
- * - Mantiene las VALIDACIONES originales en cada campo que envíes.
+ * ¿Por qué así?
+ * - Mantengo coherencia de validaciones y evito repetir.
+ * - Si el body trae solo un campo, igual se validan las reglas de ese campo.
  */
 export class UpdatePacienteDto extends PartialType(CreatePacienteDto) {}
 // ----------------------------------------------------------------------------

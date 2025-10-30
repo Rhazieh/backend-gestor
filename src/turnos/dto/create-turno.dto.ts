@@ -1,33 +1,33 @@
 // backend-gestor/src/turnos/dto/create-turno.dto.ts
 // -----------------------------------------------------------------------------
-// DTO (Data Transfer Object) para CREAR un turno
-// Define la FORMA y las REGLAS de lo que el backend acepta en el body.
-// El ValidationPipe global (ver main.ts) usa estos decoradores para validar
-// automáticamente la request y devolver 400 si algo no cumple.
-// Importante: acá solo validamos formato. Otras validaciones de negocio
-// (existencia de paciente, colisiones de fecha/hora) se hacen en TurnosService.
+// DTO para CREAR un turno
+// Acá defino la forma exacta del body que quiero recibir y por qué. El
+// ValidationPipe (global) va a leer estos decoradores y, si algo no cierra,
+// devuelve 400 antes de que el request llegue al controller.
+// Acordate: acá valido FORMATO; las reglas de negocio (existe paciente,
+// no duplicar fecha+hora) las manejo en el servicio.
 // -----------------------------------------------------------------------------
 
 // Validadores de class-validator (se aplican campo por campo)
 import { IsNotEmpty, IsString, Matches } from 'class-validator';
 
 export class CreateTurnoDto {
-  @IsNotEmpty() // no se acepta null/undefined/''
-  @Matches(/^\d{4}-\d{2}-\d{2}$/) // formato exacto 'YYYY-MM-DD' (p. ej. '2025-08-15')
-  // Nota: no valida calendario real (31/02 pasaría). Para eso, validás en el servicio si querés.
+  @IsNotEmpty() // no acepto null/undefined/''
+  @Matches(/^\d{4}-\d{2}-\d{2}$/) // quiero 'YYYY-MM-DD' (ej: '2025-08-15')
+  // Nota para mí: esto no valida calendario real (31/02 pasaría). Si lo necesito, lo hago en el service.
   fecha: string;
 
   @IsNotEmpty()
-  @Matches(/^\d{2}:\d{2}$/) // formato exacto 'HH:MM' (24hs). Ej: '14:30'
-  // Nota: si llega '15:00:00' no pasa; el servicio guarda 'HH:MM' y el DB puede normalizar.
+  @Matches(/^\d{2}:\d{2}$/) // pido 'HH:MM' 24hs (ej: '14:30').
+  // Si llega '15:00:00' no pasa: prefiero normalizar desde el backend.
   hora: string;
 
   @IsNotEmpty()
-  @IsString() // texto libre (tu front ya limita y muestra errores)
-  razon: string; // Ej: 'Consulta de control'
+  @IsString() // texto libre (el front muestra errores si quiere limitar más)
+  razon: string; // ej: 'Consulta de control'
 
-  @IsNotEmpty() // requerido para asociar el turno a un paciente existente
-  // El servicio verifica que el paciente con este id exista (404 si no)
+  @IsNotEmpty() // necesito asociarlo a un paciente existente
+  // El servicio valida que exista (si no, 404).
   pacienteId: number;
 }
 // -----------------------------------------------------------------------------

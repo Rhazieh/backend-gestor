@@ -1,17 +1,17 @@
 // backend-gestor/src/turnos/turnos.controller.ts
 // -----------------------------------------------------------------------------
-// CONTROLADOR DE TURNOS (NestJS)
-// Guía de lectura: define endpoints para manejar turnos (crear, listar,
-// consultar, actualizar, eliminar). Delegamos toda la lógica en TurnosService.
-// Importante: responde con DOS prefijos a la vez para no romper nada y cumplir el enunciado:
+// CONTROLADOR DE TURNOS
+// Acá defino endpoints para crear/listar/consultar/actualizar/eliminar turnos
+// y dejo la lógica de negocio en TurnosService.
+// Decisión: respondo con dos prefijos a la vez para no duplicar código y cumplir
+// el enunciado:
 //   - Español:      /turnos
 //   - Inglés:       /appointments
-// Ej: GET /turnos  y GET /appointments llaman al mismo método.
+// Ojo: GET /turnos y GET /appointments terminan en el mismo método.
 //
-// Nota sobre validación:
-// - Los cuerpos (body) se validan con los DTOs (CreateTurnoDto / UpdateTurnoDto).
-// - El ValidationPipe global (ver main.ts) aplica esas reglas automáticamente.
-// - ParseIntPipe convierte :id (string en URL) a number y valida que sea numérico.
+// Validación (recordatorio):
+// - Los body se chequean con CreateTurnoDto/UpdateTurnoDto gracias al ValidationPipe global.
+// - ParseIntPipe me convierte :id (string) a number y devuelve 400 si no puede.
 // -----------------------------------------------------------------------------
 
 import {
@@ -31,20 +31,19 @@ import { TurnosService } from './turnos.service';
 import { CreateTurnoDto } from './dto/create-turno.dto';
 import { UpdateTurnoDto } from './dto/update-turno.dto';
 
-// 👇 Un mismo controller colgado de dos rutas base: /turnos y /appointments
+// Uso un mismo controller colgado de dos rutas base: /turnos y /appointments
 @Controller(['turnos', 'appointments'])
 export class TurnosController {
-  // Inyectamos el servicio con la lógica real (acceso a DB, etc.)
+  // Le pido a Nest que me “pase” el TurnosService. Quiero que el controller
+  // coordine y el servicio haga el trabajo con la DB.
   constructor(private readonly turnosService: TurnosService) {}
 
   /**
-   * POST /turnos        (y también /appointments)
-   * Crea un nuevo turno.
-   * Flujo:
-   * 1) Valida el body con CreateTurnoDto (fecha/hora/razon/pacienteId).
-   * 2) turnosService.create(...) guarda y devuelve el turno.
-   * 3) Para comodidad del front, volvemos a pedirlo con findOne(nuevo.id)
-   *    para traer también las relaciones (paciente).
+   * POST /turnos  (y /appointments)
+   * ¿Por qué pido el DTO acá?
+   * - Para garantizar que fecha/hora/razon/pacienteId vengan en el formato que espero.
+   * Estrategia: después de crear, vuelvo a pedir el turno con findOne para devolver
+   * también el paciente relacionado (le simplifico la vida al front).
    */
   @Post()
   async create(@Body() createTurnoDto: CreateTurnoDto) {
@@ -53,16 +52,16 @@ export class TurnosController {
   }
 
   /**
-   * GET /turnos         (y también /appointments)
-   * Lista todos los turnos.
-   * - El service ya los ordena por fecha/hora y trae el paciente relacionado.
+   * GET /turnos  (y /appointments)
+   * Listo turnos. Si me pasan query params, los transformo y delego el filtrado
+   * al servicio (DB). Sino, devuelvo todo.
    */
   @Get()
   findAll(
-    @Query('fecha') fecha?: string, // 'YYYY-MM-DD'
-    @Query('pacienteId') pacienteId?: string, // number en string
+    @Query('fecha') fecha?: string, // espero 'YYYY-MM-DD'
+    @Query('pacienteId') pacienteId?: string, // llega como string
   ) {
-    // Si llegan filtros por query, delegamos al service para filtrar en DB.
+    // Si llegan filtros, delego al service para filtrar en DB.
     if (fecha || pacienteId) {
       const pid = pacienteId ? Number(pacienteId) : undefined;
       return this.turnosService.findByFilters({ fecha, pacienteId: pid });
@@ -71,9 +70,8 @@ export class TurnosController {
   }
 
   /**
-   * GET /turnos/:id     (y también /appointments/:id)
-   * Busca un turno puntual por ID (numérico).
-   * - ParseIntPipe fuerza que :id sea number (si no, responde 400).
+   * GET /turnos/:id  (y /appointments/:id)
+   * Quiero traer un turno puntual por ID. ParseIntPipe me cuida el tipo.
    */
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
@@ -81,10 +79,9 @@ export class TurnosController {
   }
 
   /**
-   * PUT /turnos/:id     (y también /appointments/:id)
-   * Actualiza (reemplaza/cambia) datos de un turno.
-   * - Usamos UpdateTurnoDto (todos los campos opcionales).
-   * - PUT está pedido en el enunciado, así que lo incluimos explícito.
+   * PUT /turnos/:id  (y /appointments/:id)
+   * Actualizo datos de un turno usando UpdateTurnoDto (campos opcionales).
+   * Incluyo PUT explícito porque el enunciado lo pide.
    */
   @Put(':id')
   updatePut(
@@ -95,9 +92,8 @@ export class TurnosController {
   }
 
   /**
-   * PATCH /turnos/:id   (y también /appointments/:id)
-   * Actualización parcial (mantener por compatibilidad con el front).
-   * - También usa UpdateTurnoDto.
+   * PATCH /turnos/:id  (y /appointments/:id)
+   * Permití PATCH para actualizaciones parciales; sigo usando UpdateTurnoDto.
    */
   @Patch(':id')
   updatePatch(
@@ -108,8 +104,8 @@ export class TurnosController {
   }
 
   /**
-   * DELETE /turnos/:id  (y también /appointments/:id)
-   * Elimina un turno por ID.
+   * DELETE /turnos/:id  (y /appointments/:id)
+   * Elimino un turno por ID. El service se encarga de validar existencia.
    */
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {

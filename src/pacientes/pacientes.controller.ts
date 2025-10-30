@@ -1,15 +1,15 @@
 // backend-gestor/src/pacientes/pacientes.controller.ts
 // -----------------------------------------------------------------------------
-// CONTROLADOR DE PACIENTES (NestJS)
-// Guía de lectura: este controller define las rutas HTTP de Pacientes y delega
-// la lógica en PacientesService. También usa TurnosService para endpoints
-// anidados de appointments bajo /patients/:id/appointments.
-// Expone rutas REST para crear, listar, editar y borrar pacientes.
-// Además, agrega las rutas "anidadas" para ver/crear turnos de un paciente.
-// Nota: el mismo controller responde en español e inglés.
+// CONTROLADOR DE PACIENTES
+// Acá decido las rutas HTTP de pacientes y dejo la lógica “pesada” en
+// PacientesService. También traigo TurnosService para manejar las rutas
+// anidadas de appointments bajo /patients/:id/appointments.
+// Mi objetivo: que quede claro qué endpoint hace qué, y por qué inyecto cada servicio.
+// Nota: este mismo controller responde con dos prefijos para cumplir enunciado
+// sin duplicar código:
 //  - Español:  /pacientes
 //  - Inglés:   /patients
-//  - Anidado:  /patients/:id/appointments  (GET/POST) → usa TurnosService
+//  - Anidado:  /patients/:id/appointments  (GET/POST) → delego en TurnosService
 // -----------------------------------------------------------------------------
 
 import {
@@ -20,26 +20,28 @@ import {
   Delete,
   Param,
   Body,
-  ParseIntPipe, // Convierte "id" (string de la URL) a number y valida.
+  ParseIntPipe, // Uso ParseIntPipe como "filtro" para convertir :id (string) a number y validar.
 } from '@nestjs/common';
 
 import { PacientesService } from './pacientes.service';
 import { TurnosService } from '../turnos/turnos.service';
+import { CreateTurnoDto } from '../turnos/dto/create-turno.dto';
 
-// DTOs para validar el cuerpo de las peticiones relacionadas a Paciente.
+// Acordate: estos DTOs los lee el ValidationPipe global antes de entrar a mis métodos.
+// Así me aseguro de que el body tiene la forma correcta.
 import { CreatePacienteDto } from './dto/create-paciente.dto';
 import { UpdatePacienteDto } from './dto/update-paciente.dto';
 
-// DTO mínimo para crear turnos desde /patients/:id/appointments
-// (acá NO pedimos pacienteId en el body, lo tomamos desde la URL).
+// Armo un DTO mínimo para crear turnos desde /patients/:id/appointments.
+// Decisión: acá NO pido pacienteId en el body porque ya lo tengo en la URL.
 import { IsNotEmpty, IsString, Matches } from 'class-validator';
 class CreateAppointmentFromPatientDto {
   @IsNotEmpty()
-  @Matches(/^\d{4}-\d{2}-\d{2}$/) // Formato estricto 'YYYY-MM-DD'
+  @Matches(/^\d{4}-\d{2}-\d{2}$/) // Ojo: formato estricto 'YYYY-MM-DD' para evitar ambigüedades.
   fecha: string;
 
   @IsNotEmpty()
-  @Matches(/^\d{2}:\d{2}$/) // Formato estricto 'HH:MM' (24h)
+  @Matches(/^\d{2}:\d{2}$/) // Mantengo 'HH:MM' (24h) para que el servicio no tenga que normalizar acá.
   hora: string;
 
   @IsNotEmpty()
@@ -47,68 +49,72 @@ class CreateAppointmentFromPatientDto {
   razon: string;
 }
 
-// 👇 Un mismo controller "cuelga" de dos prefijos: /pacientes y /patients.
-//    Es útil para mantener compatibilidad y cumplir el enunciado al mismo tiempo.
+// Ojo con esto: uso dos prefijos a la vez (['/pacientes','/patients']).
+// Lo hago para no duplicar endpoints y mantener compatibilidad.
 @Controller(['pacientes', 'patients'])
 export class PacientesController {
-  // Inyectamos los servicios que hacen la lógica real (DB, validaciones, etc.).
+  // Inyecto los servicios que necesito. Idea clave: que el controller
+  // solo coordine y la lógica viva en los services.
   constructor(
     private readonly pacientesService: PacientesService,
-    private readonly turnosService: TurnosService, // lo usamos para endpoints de appointments
+    private readonly turnosService: TurnosService, // lo uso en los endpoints de appointments
   ) {}
 
   // GET /pacientes  y  GET /patients
-  // Devuelve la lista completa de pacientes (con sus turnos si el service los incluye).
+  // Quiero devolver la lista completa de pacientes. El service ya decide si incluye turnos.
   @Get()
   findAll() {
     return this.pacientesService.findAll();
   }
 
   // POST /pacientes  y  POST /patients
-  // Crea un nuevo paciente a partir del body validado por CreatePacienteDto.
+  // Creo un paciente nuevo. Acordate que el ValidationPipe ya validó CreatePacienteDto.
   @Post()
   create(@Body() body: CreatePacienteDto) {
     return this.pacientesService.create(body);
   }
 
   // PUT /pacientes/:id  y  PUT /patients/:id
-  // Actualiza (reemplaza/parcial) un paciente.
-  // ParseIntPipe asegura que :id sea number (si no, responde 400).
+  // Actualizo un paciente existente. ParseIntPipe me asegura que :id sea number (400 si no).
   @Put(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdatePacienteDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdatePacienteDto,
+  ) {
     return this.pacientesService.update(id, body);
   }
 
   // DELETE /pacientes/:id  y  DELETE /patients/:id
-  // Elimina un paciente por ID (si la relación en Turno tiene onDelete: 'CASCADE',
-  // también se borran sus turnos).
+  // Elimino un paciente por ID. Recordatorio: en Turno configuré onDelete:'CASCADE',
+  // así que sus turnos también se van automáticamente.
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.pacientesService.remove(id);
   }
 
-  // GET /patients/:id/appointments  (también responde en /pacientes/:id/appointments)
-  // Devuelve todos los turnos del paciente indicado por :id.
+  // GET /patients/:id/appointments  (también /pacientes/:id/appointments)
+  // Quiero ver todos los turnos del paciente :id. Delego la query al TurnosService.
   @Get(':id/appointments')
   getAppointments(@Param('id', ParseIntPipe) id: number) {
     return this.turnosService.findByPatient(id);
   }
 
   // POST /patients/:id/appointments  (idem en español)
-  // Crea un turno para el paciente :id. El pacienteId lo tomamos de la URL,
-  // así el body queda limpio con solo fecha/hora/razon.
+  // Creo un turno para el paciente :id. Decidí NO pedir pacienteId en el body
+  // porque ya lo tengo en la URL; así el body queda limpio (fecha/hora/razon).
   @Post(':id/appointments')
   createAppointment(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: CreateAppointmentFromPatientDto,
   ) {
-    // Delegamos en TurnosService.create y le "inyectamos" pacienteId desde la URL.
-    return this.turnosService.create({
+    // Delego en TurnosService.create y le paso pacienteId desde la URL.
+    const dto: CreateTurnoDto = {
       fecha: body.fecha,
       hora: body.hora,
       razon: body.razon,
       pacienteId: id,
-    } as any);
+    };
+    return this.turnosService.create(dto);
   }
 }
 // ----------------------------------------------------------------------------

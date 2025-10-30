@@ -1,64 +1,53 @@
 // backend-gestor/src/pacientes/entities/paciente.entity.ts
 // -----------------------------------------------------------------------------
 // ENTIDAD "PACIENTE" (TypeORM)
-// Esta clase mapea una tabla de la base de datos. Cada decorador (@Column, etc.)
-// le dice a TypeORM cómo crear/leer las columnas. La relación con Turno es 1:N:
-// un Paciente puede tener muchos Turnos.
+// Acá defino cómo quiero que TypeORM mapee mi clase a la tabla de la DB.
+// ¿Por qué? Porque quiero tener tipado en TypeScript y a la vez controlar
+// columnas/relaciones desde el código. Relación clave: 1 Paciente → muchos Turnos.
 // -----------------------------------------------------------------------------
 
-// Decoradores de TypeORM para definir tabla, columnas y relaciones.
+// Uso estos decoradores como “etiquetas” para que TypeORM sepa crear columnas/relaciones.
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 
-// Importamos Turno para declarar la relación 1:N (Paciente → Turnos).
+// Importo Turno para declarar la relación 1:N (Paciente → Turnos).
 import { Turno } from '../../turnos/entities/turno.entity';
 
 /**
- * @Entity():
- * - Señala que esta clase es una tabla de la DB.
- * - Si no le pasás nombre, usa el nombre de la clase en snake_case (ej. "paciente").
+ * @Entity(): “etiqueta” que marca esta clase como tabla.
+ * Nota para mí: si no paso nombre, usa el de la clase (ej. paciente).
  */
 @Entity()
 export class Paciente {
   /**
-   * @PrimaryGeneratedColumn():
-   * - Crea una columna "id" autoincremental (PRIMARY KEY).
+   * @PrimaryGeneratedColumn(): quiero un id autoincremental como PK.
    */
   @PrimaryGeneratedColumn()
   id: number;
 
   /**
-   * @Column():
-   * - Columna de texto para el nombre.
-   * - Por defecto VARCHAR (depende del motor).
+   * @Column(): columna simple de texto para el nombre.
    */
   @Column()
   nombre: string;
 
   /**
-   * @Column():
-   * - Columna de texto para el email.
-   * - La validación de formato se hace en el DTO (no acá).
+   * @Column(): email como texto. Validación de formato la hago en el DTO.
    */
   @Column()
   email: string;
 
   /**
-   * @Column():
-   * - Columna de texto para el teléfono.
+   * @Column(): teléfono como texto (acepto distintos formatos).
    */
   @Column()
   telefono: string;
 
   /**
    * @OneToMany(() => Turno, (turno) => turno.paciente)
-   * - Declara el "lado inverso" de la relación. Acá NO hay FK ni columna extra;
-   *   la FK vive del lado ManyToOne (en Turno.paciente) → ese es el "lado dueño".
-   * - Gracias a esto, cuando pedimos un Paciente con relations:['turnos'],
-   *   TypeORM trae el array de Turno[] asociado.
-   *
-   * Nota: el borrado en cascada se definió del lado de Turno con
-   *   onDelete: 'CASCADE' en @ManyToOne, por eso al borrar un paciente
-   *   se borran también sus turnos.
+   * ¿Por qué así? Porque el dueño de la FK es Turno (ManyToOne). Acá solo
+   * defino el lado inverso para poder pedir relations:['turnos'] y que TypeORM
+   * me traiga el array de Turno[] asociado.
+   * Importante: el onDelete:'CASCADE' lo configuré en Turno (lado ManyToOne).
    */
   @OneToMany(() => Turno, (turno) => turno.paciente)
   turnos: Turno[];
