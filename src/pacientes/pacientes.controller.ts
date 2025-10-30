@@ -1,15 +1,18 @@
 // backend-gestor/src/pacientes/pacientes.controller.ts
 // -----------------------------------------------------------------------------
 // CONTROLADOR DE PACIENTES
-// Acá decido las rutas HTTP de pacientes y dejo la lógica “pesada” en
+// Acá decido las rutas HTTP de pacientes y dejo la lógica "pesada" en
 // PacientesService. También traigo TurnosService para manejar las rutas
-// anidadas de appointments bajo /patients/:id/appointments.
+// anidadas de appointments/turnos bajo /patients/:id/appointments y /pacientes/:id/turnos.
 // Mi objetivo: que quede claro qué endpoint hace qué, y por qué inyecto cada servicio.
 // Nota: este mismo controller responde con dos prefijos para cumplir enunciado
 // sin duplicar código:
 //  - Español:  /pacientes
 //  - Inglés:   /patients
-//  - Anidado:  /patients/:id/appointments  (GET/POST) → delego en TurnosService
+//  - Anidados:
+//    • /patients/:id/appointments (GET/POST) → inglés
+//    • /pacientes/:id/turnos (GET/POST) → español
+//    Ambos delegan en TurnosService
 // -----------------------------------------------------------------------------
 
 import {
@@ -92,17 +95,18 @@ export class PacientesController {
     return this.pacientesService.remove(id);
   }
 
-  // GET /patients/:id/appointments  (también /pacientes/:id/appointments)
+  // GET /patients/:id/appointments y /pacientes/:id/turnos
   // Quiero ver todos los turnos del paciente :id. Delego la query al TurnosService.
-  @Get(':id/appointments')
+  // Respondo en ambos idiomas: appointments (inglés) y turnos (español).
+  @Get([':id/appointments', ':id/turnos'])
   getAppointments(@Param('id', ParseIntPipe) id: number) {
     return this.turnosService.findByPatient(id);
   }
 
-  // POST /patients/:id/appointments  (idem en español)
+  // POST /patients/:id/appointments y /pacientes/:id/turnos
   // Creo un turno para el paciente :id. Decidí NO pedir pacienteId en el body
   // porque ya lo tengo en la URL; así el body queda limpio (fecha/hora/razon).
-  @Post(':id/appointments')
+  @Post([':id/appointments', ':id/turnos'])
   createAppointment(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: CreateAppointmentFromPatientDto,
