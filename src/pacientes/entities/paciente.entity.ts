@@ -7,7 +7,7 @@
 // -----------------------------------------------------------------------------
 
 // Uso estos decoradores como “etiquetas” para que TypeORM sepa crear columnas/relaciones.
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, Unique } from 'typeorm';
 
 // Importo Turno para declarar la relación 1:N (Paciente → Turnos).
 import { Turno } from '../../turnos/entities/turno.entity';
@@ -17,6 +17,7 @@ import { Turno } from '../../turnos/entities/turno.entity';
  * Nota para mí: si no paso nombre, usa el de la clase (ej. paciente).
  */
 @Entity()
+@Unique(['email'])
 export class Paciente {
   /**
    * @PrimaryGeneratedColumn(): quiero un id autoincremental como PK.
