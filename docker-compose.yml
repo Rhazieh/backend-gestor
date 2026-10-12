@@ -1,0 +1,43 @@
+services:
+  # 1. Base de Datos PostgreSQL
+  db:
+    image: postgres:15
+    container_name: backend-turnos-db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: turnos
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # 2. Backend (NestJS)
+  backend:
+    build:
+      context: .
+    image: rhazieh1/backend-gestor:v1.0
+    container_name: gestor-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "postgres://postgres:postgres@db:5432/turnos"
+    depends_on:
+      - db
+
+  # 3. Frontend (Angular + Nginx)
+  frontend:
+    build:
+      context: ../../frontend-gestor-main
+    image: rhazieh1/frontend-gestor:v1.0
+    container_name: gestor-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
