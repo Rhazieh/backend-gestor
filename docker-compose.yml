@@ -30,7 +30,7 @@ services:
   # 3. Frontend (Angular + Nginx)
   frontend:
     build:
-      context: ../../frontend-gestor-main
+      context: ../frontend-gestor-main
     image: rhazieh1/frontend-gestor:v1.0
     container_name: gestor-frontend
     restart: unless-stopped
