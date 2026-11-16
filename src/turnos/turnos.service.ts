@@ -139,7 +139,6 @@ export class TurnosService {
       relations: ['paciente'],
       order: { fecha: 'ASC', hora: 'ASC' },
     });
-
   }
 
   /**

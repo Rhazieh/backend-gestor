@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { NotFoundException } from '@nestjs/common';
 import { PacientesService } from './pacientes.service';
 import { Paciente } from './entities/paciente.entity';
 
@@ -10,8 +11,12 @@ describe('PacientesService', () => {
   const mockPacienteRepo = {
     find: jest.fn(),
     findOne: jest.fn(),
-    create: jest.fn().mockImplementation((dto) => dto),
-    save: jest.fn().mockImplementation((p) => Promise.resolve({ id: 1, ...p })),
+    create: jest.fn().mockImplementation((dto: Partial<Paciente>) => dto),
+    save: jest
+      .fn()
+      .mockImplementation((p: Partial<Paciente>) =>
+        Promise.resolve({ id: 1, ...p }),
+      ),
     update: jest.fn(),
     delete: jest.fn(),
   };
@@ -56,17 +61,59 @@ describe('PacientesService', () => {
   it('debe crear y persistir un nuevo paciente (create)', async () => {
     const dto = {
       nombre: 'Maria',
-      apellido: 'Perez',
       email: 'maria@example.com',
       telefono: '123456',
     };
 
-    const resultado = await service.create(dto as any);
+    const resultado = await service.create(dto);
 
     // Verificamos que arme la entidad en memoria y luego la guarde
     expect(mockPacienteRepo.create).toHaveBeenCalledWith(dto);
     expect(mockPacienteRepo.save).toHaveBeenCalled();
     // Verificamos que el paciente retornado tenga su ID asignado
     expect(resultado).toEqual({ id: 1, ...dto });
+  });
+
+  it('debe buscar un paciente por ID (findOne)', async () => {
+    const paciente = { id: 1, nombre: 'Carlos', turnos: [] };
+    mockPacienteRepo.findOne.mockResolvedValue(paciente);
+
+    const resultado = await service.findOne(1);
+
+    expect(mockPacienteRepo.findOne).toHaveBeenCalledWith({
+      where: { id: 1 },
+      relations: ['turnos'],
+    });
+    expect(resultado).toEqual(paciente);
+  });
+
+  it('debe actualizar un paciente existente (update)', async () => {
+    const actualizado = { id: 1, nombre: 'Carlos Actualizado', turnos: [] };
+    mockPacienteRepo.update.mockResolvedValue({ affected: 1 });
+    mockPacienteRepo.findOne.mockResolvedValue(actualizado);
+
+    const resultado = await service.update(1, { nombre: 'Carlos Actualizado' });
+
+    expect(mockPacienteRepo.update).toHaveBeenCalledWith(1, {
+      nombre: 'Carlos Actualizado',
+    });
+    expect(resultado).toEqual(actualizado);
+  });
+
+  it('debe lanzar NotFoundException al actualizar un paciente que no existe', async () => {
+    mockPacienteRepo.update.mockResolvedValue({ affected: 0 });
+
+    await expect(service.update(99, { nombre: 'Nadie' })).rejects.toThrow(
+      NotFoundException,
+    );
+  });
+
+  it('debe eliminar un paciente por ID (remove)', async () => {
+    mockPacienteRepo.delete.mockResolvedValue({ affected: 1 });
+
+    const resultado = await service.remove(1);
+
+    expect(mockPacienteRepo.delete).toHaveBeenCalledWith(1);
+    expect(resultado).toEqual({ affected: 1 });
   });
 });

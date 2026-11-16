@@ -73,7 +73,7 @@ describe('PacientesController', () => {
 
     mockTurnosService.create.mockResolvedValue(turnoCreadoEsperado);
 
-    const resultado = await controller.createAppointment(pacienteId, bodyTurno as any);
+    const resultado = await controller.createAppointment(pacienteId, bodyTurno);
 
     // Verificamos que el controller inyecte el pacienteId al DTO que le pasa a TurnosService
     expect(mockTurnosService.create).toHaveBeenCalledWith({

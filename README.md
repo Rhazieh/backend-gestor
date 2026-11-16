@@ -1,3 +1,9 @@
+# Gestor de Turnos Médicos - Backend
+
+[![Backend CI](https://github.com/Rhazieh/backend-gestor/actions/workflows/ci.yml/badge.svg)](https://github.com/Rhazieh/backend-gestor/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/Rhazieh/backend-gestor/graph/badge.svg)](https://codecov.io/gh/Rhazieh/backend-gestor)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/ff8171b8562047ed927e484cd6071d8c)](https://app.codacy.com/gh/Rhazieh/backend-gestor/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+
 Backend del proyecto "Gestor de Turnos Médicos", hecho en NestJS y conectado a una base de datos PostgreSQL. Permite manejar pacientes y sus turnos, con las funciones básicas (crear, editar, eliminar, listar).
 
 Tecnologías usadas:

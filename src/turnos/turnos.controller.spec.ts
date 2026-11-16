@@ -43,7 +43,10 @@ describe('TurnosController', () => {
     };
 
     const turnoCreado = { id: 7, ...dto };
-    const turnoCompleto = { ...turnoCreado, paciente: { id: 2, nombre: 'Lucia' } };
+    const turnoCompleto = {
+      ...turnoCreado,
+      paciente: { id: 2, nombre: 'Lucia' },
+    };
 
     mockTurnosService.create.mockResolvedValue(turnoCreado);
     mockTurnosService.findOne.mockResolvedValue(turnoCompleto);
