@@ -1,143 +1,137 @@
-# Gestor de Turnos Médicos - Backend
+# Gestor de Turnos Médicos — Backend
 
 [![Backend CI](https://github.com/Rhazieh/backend-gestor/actions/workflows/ci.yml/badge.svg)](https://github.com/Rhazieh/backend-gestor/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/Rhazieh/backend-gestor/graph/badge.svg)](https://codecov.io/gh/Rhazieh/backend-gestor)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/ff8171b8562047ed927e484cd6071d8c)](https://app.codacy.com/gh/Rhazieh/backend-gestor/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
-Backend del proyecto "Gestor de Turnos Médicos", hecho en NestJS y conectado a una base de datos PostgreSQL. Permite manejar pacientes y sus turnos, con las funciones básicas (crear, editar, eliminar, listar).
+REST API for the **Gestor de Turnos Médicos** (Medical Appointment Manager) platform, built with **NestJS**, **TypeScript**, and **PostgreSQL (TypeORM)**. It provides full CRUD management, input validation, dynamic filtering, automated CI/CD, Docker Compose orchestration, and local Kubernetes manifests for Minikube.
 
-Tecnologías usadas:
-- NestJS
-- PostgreSQL
-- TypeORM
-- Render (para el deploy)
+- **Production API (Render):** https://backend-gestor-zfez.onrender.com *(may take a few seconds to wake up on cold start)*
+- **Frontend Repository:** https://github.com/Rhazieh/frontend-gestor
 
-Pasos para correrlo localmente (localhost:3000):
+---
 
-1) Instalar dependencias
+## Tech Stack
 
-   npm install
+- **Runtime & Framework:** Node.js 20, NestJS 11, TypeScript
+- **Database & ORM:** PostgreSQL 15, TypeORM, `class-validator` / `class-transformer`
+- **Containers & Orchestration:** Docker, Docker Compose, Kubernetes (`k8s/` manifests for Minikube)
+- **CI/CD & Code Quality:** GitHub Actions, ESLint, Jest (unit tests & coverage), Codecov, Codacy, Dependabot, Render
 
-2) Levantar PostgreSQL (opcional pero recomendado con docker-compose)
+---
 
-   docker compose -f docker-compose.yml up -d
+## Running Locally (`localhost:3000`)
 
-   Esto te deja una base accesible en postgres://postgres:postgres@localhost:5432/turnos
+1. **Install dependencies:**
 
-3) Crear variables de entorno
+```bash
+npm install
+```
 
-   Copiá `.env.example` a `.env` y ajustá si hace falta. Por defecto, si no configurás nada,
-   el backend usará la URL local de arriba y el puerto 3000.
+2. **Start PostgreSQL with Docker Compose (recommended):**
 
-   cp .env.example .env
+```bash
+docker compose -f docker-compose.yml up -d db
+```
 
-4) Ejecutar en desarrollo (watch)
+This exposes a local database at `postgres://postgres:postgres@localhost:5432/turnos` with a persistent volume (`pgdata`). You can also launch the full stack (`db`, `backend`, `frontend`) with `docker compose up -d`.
 
-   npm run start:dev
+3. **Configure environment variables:**
 
-   La API quedará en http://localhost:3000 con CORS habilitado.
+Copy `.env.example` to `.env` and adjust if needed (by default it uses port `3000` and the local database URL above):
 
-Endpoints disponibles:
+```bash
+cp .env.example .env
+```
 
-Pacientes:
-- GET /pacientes
-- POST /pacientes
-- GET /pacientes/:id
-- PATCH /pacientes/:id
-- DELETE /pacientes/:id
+4. **Run in development mode (watch):**
 
-Turnos:
-- GET /turnos
-- POST /turnos
-- GET /turnos/:id
-- PATCH /turnos/:id
-- DELETE /turnos/:id
+```bash
+npm run start:dev
+```
 
-Filtros (Turnos):
-- GET /turnos?fecha=YYYY-MM-DD
-- GET /turnos?pacienteId=ID
-- GET /turnos?fecha=YYYY-MM-DD&pacienteId=ID
+The API will be available at `http://localhost:3000` with CORS enabled.
 
-Turnos por paciente:
-- GET /pacientes/:id/appointments
-- POST /pacientes/:id/appointments
+---
 
-Modelo de base de datos:
+## API Endpoints
 
-Un paciente puede tener varios turnos (relación 1:N)
+### Patients (`/pacientes`)
 
-paciente:
-- id
-- nombre
-- email
-- telefono
+```http
+GET    /pacientes
+POST   /pacientes
+GET    /pacientes/:id
+PATCH  /pacientes/:id
+DELETE /pacientes/:id
+```
 
-turno:
-- id
-- fecha
-- hora
-- razon
-- pacienteId
+### Appointments (`/turnos`)
 
-Deploy en Render (puede tardar unos segundos en arrancar si estuvo inactivo):  
-https://backend-gestor-zfez.onrender.com
+```http
+GET    /turnos
+POST   /turnos
+GET    /turnos/:id
+PATCH  /turnos/:id
+DELETE /turnos/:id
+```
 
-Colección Postman:
-- Archivo: postman_collection.json (incluido en este repo)
-- Cómo usar:
-   1) Abrí Postman, Import > File > seleccioná postman_collection.json
-   2) Definí la variable de entorno `baseUrl` si querés apuntar a Render en vez de localhost
-       (por defecto ya apunta a http://localhost:3000).
-   3) Probá los requests: CRUD de Pacientes, CRUD de Turnos, Filtros y Appointments anidados.
+### Filters & Nested Routes
 
-Repositorio del frontend:  
-https://github.com/Rhazieh/frontend-gestor
+```http
+GET  /turnos?fecha=YYYY-MM-DD
+GET  /turnos?pacienteId=ID
+GET  /turnos?fecha=YYYY-MM-DD&pacienteId=ID
+GET  /pacientes/:id/appointments
+POST /pacientes/:id/appointments
+```
 
-Indice de lectura recomendado:
-1. backend-gestor/src/main.ts
+---
 
+## Database Schema (1:N Relationship)
 
-2. backend-gestor/src/app.module.ts
+A `paciente` can have multiple `turnos`:
 
+```text
+paciente
+├── id
+├── nombre
+├── email
+└── telefono
 
-3. backend-gestor/src/pacientes/entities/paciente.entity.ts
+turno
+├── id
+├── fecha
+├── hora
+├── razon
+└── pacienteId (FK -> paciente.id)
+```
 
+---
 
-4. backend-gestor/src/turnos/entities/turno.entity.ts
+## CI/CD & Code Quality Pipeline
 
+The workflow in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) triggers on pushes and pull requests to `main`/`master`:
 
-5. backend-gestor/src/pacientes/dto/create-paciente.dto.ts
+1. **Deterministic install:** `npm ci` on Node.js 20
+2. **Static analysis:** `npm run lint:check` (ESLint)
+3. **Unit tests & coverage:** `npm run test:cov` (Jest), uploading `lcov.info` to **Codecov**
+4. **Build verification:** `npm run build`
+5. **Continuous Deployment (Render):** On push to `main` (after `test` succeeds), triggers the Render deploy hook via `RENDER_DEPLOY_HOOK_URL`
 
+Code quality is continuously monitored with **Codacy** and dependency updates are automated with **Dependabot**.
 
-6. backend-gestor/src/pacientes/dto/update-paciente.dto.ts
+---
 
+## Local Kubernetes Deployment (Minikube)
 
-7. backend-gestor/src/turnos/dto/create-turno.dto.ts
+Kubernetes manifests live under [`k8s/`](k8s/):
 
-
-8. backend-gestor/src/turnos/dto/update-turno.dto.ts
-
-
-9. backend-gestor/src/pacientes/pacientes.service.ts
-
-
-10. backend-gestor/src/turnos/turnos.service.ts
-
-
-11. backend-gestor/src/pacientes/pacientes.controller.ts
-
-
-12. backend-gestor/src/turnos/turnos.controller.ts
-
-
-13. backend-gestor/src/pacientes/pacientes.module.ts
-
-
-14. backend-gestor/src/turnos/turnos.module.ts
-
-## Kubernetes Local (Minikube)
-
-Los manifiestos YAML están en la carpeta `k8s/` (Postgres con `Secret`, `PersistentVolumeClaim` y `ClusterIP`; Backend y Frontend con `NodePort` y 2 réplicas para el frontend).
+- [`01-postgres-secret.yaml`](k8s/01-postgres-secret.yaml): `Secret` holding PostgreSQL credentials and `DATABASE_URL`
+- [`02-postgres-pvc.yaml`](k8s/02-postgres-pvc.yaml): `PersistentVolumeClaim` (`1Gi`, `ReadWriteOnce`)
+- [`03-postgres-deployment.yaml`](k8s/03-postgres-deployment.yaml): PostgreSQL 15 `Deployment` + `ClusterIP` service (`db:5432`)
+- [`04-backend-deployment.yaml`](k8s/04-backend-deployment.yaml): Backend `Deployment` (`rhazieh1/gestor-backend:latest`, TCP readiness probe, resource limits) + `NodePort` service (`30000`)
+- [`05-frontend-deployment.yaml`](k8s/05-frontend-deployment.yaml): Frontend `Deployment` (`rhazieh1/gestor-frontend:latest`, 2 replicas, HTTP readiness probe) + `NodePort` service (`30080`)
 
 ```bash
 minikube start --driver=docker
@@ -145,9 +139,38 @@ kubectl apply -f k8s/
 kubectl get all,pvc
 ```
 
-Para probar en el navegador (`http://localhost:8080`, apuntando a `http://localhost:3000`):
+To access the services via port-forwarding (`http://localhost:8080` frontend → `http://localhost:3000` backend):
 
 ```bash
 kubectl port-forward svc/backend 3000:3000 &
 kubectl port-forward svc/frontend 8080:80 &
 ```
+
+---
+
+## Postman Collection
+
+- **File:** [`Entrega 1 - Backend Gestor (FINAL).postman_collection.json`](Entrega%201%20-%20Backend%20Gestor%20(FINAL).postman_collection.json)
+- **Usage:**
+  1. Open Postman → **Import** → **File** → select `Entrega 1 - Backend Gestor (FINAL).postman_collection.json`.
+  2. Set the `baseUrl` environment variable if targeting Render instead of `http://localhost:3000`.
+  3. Run the requests for Patients CRUD, Appointments CRUD, filters, and nested `/appointments` endpoints.
+
+---
+
+## Recommended Code Reading Order
+
+1. `src/main.ts`
+2. `src/app.module.ts`
+3. `src/pacientes/entities/paciente.entity.ts`
+4. `src/turnos/entities/turno.entity.ts`
+5. `src/pacientes/dto/create-paciente.dto.ts`
+6. `src/pacientes/dto/update-paciente.dto.ts`
+7. `src/turnos/dto/create-turno.dto.ts`
+8. `src/turnos/dto/update-turno.dto.ts`
+9. `src/pacientes/pacientes.service.ts`
+10. `src/turnos/turnos.service.ts`
+11. `src/pacientes/pacientes.controller.ts`
+12. `src/turnos/turnos.controller.ts`
+13. `src/pacientes/pacientes.module.ts`
+14. `src/turnos/turnos.module.ts`
