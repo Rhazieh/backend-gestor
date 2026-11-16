@@ -134,3 +134,20 @@ Indice de lectura recomendado:
 
 
 14. backend-gestor/src/turnos/turnos.module.ts
+
+## Kubernetes Local (Minikube)
+
+Los manifiestos YAML están en la carpeta `k8s/` (Postgres con `Secret`, `PersistentVolumeClaim` y `ClusterIP`; Backend y Frontend con `NodePort` y 2 réplicas para el frontend).
+
+```bash
+minikube start --driver=docker
+kubectl apply -f k8s/
+kubectl get all,pvc
+```
+
+Para probar en el navegador (`http://localhost:8080`, apuntando a `http://localhost:3000`):
+
+```bash
+kubectl port-forward svc/backend 3000:3000 &
+kubectl port-forward svc/frontend 8080:80 &
+```
