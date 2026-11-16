@@ -1,5 +1,5 @@
 # 1. Imagen oficial de Node.js.
-FROM node:20-alpine
+FROM node:26-alpine
 
 # 2. Directorio de trabajo dentro del container.
 WORKDIR /app
